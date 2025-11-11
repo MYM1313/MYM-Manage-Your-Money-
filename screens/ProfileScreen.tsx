@@ -34,17 +34,47 @@ const Section: FC<{ title: string; children: React.ReactNode; animationDelay?: n
     </div>
 );
 
-const ProfileRow: FC<{ title: string; description: string; icon: React.ReactNode; onClick?: () => void; isComingSoon?: boolean; isLogout?: boolean; }> = ({ title, description, icon, onClick, isComingSoon, isLogout }) => (
-    <div onClick={onClick} className={`group relative p-3 flex items-center space-x-4 transition-all duration-300 ${isLogout ? 'hover:bg-red-900/20' : 'hover:bg-sky-900/20'} cursor-pointer rounded-xl`}>
-        {isComingSoon && <div className="absolute top-2 right-12 text-xs font-bold bg-amber-900/50 text-amber-300 px-2 py-0.5 rounded-full z-10">Soon</div>}
-        <div className="p-3 bg-black/30 rounded-xl">{icon}</div>
-        <div className="flex-1">
-            <h3 className={`font-semibold transition-colors text-base ${isLogout ? 'text-red-300' : 'text-gray-100 group-hover:text-sky-300'}`}>{title}</h3>
-            <p className="text-xs text-gray-400 mt-1">{description}</p>
+const ProfileRow: FC<{ title: string; description: string; icon: React.ReactNode; onClick?: () => void; isComingSoon?: boolean; isLogout?: boolean; }> = ({ title, description, icon, onClick, isComingSoon, isLogout }) => {
+    
+    const handleClick = () => {
+        if (isComingSoon) {
+            alert("COMING SOON");
+        } else if (onClick) {
+            onClick();
+        }
+    };
+
+    const rowClasses = `
+        group relative p-3 flex items-center space-x-4 transition-all duration-300 rounded-xl
+        ${isLogout ? 'hover:bg-red-900/20' : ''}
+        ${!isComingSoon && !isLogout ? 'hover:bg-sky-900/20' : ''}
+        ${isComingSoon ? 'opacity-60' : ''}
+        cursor-pointer
+    `;
+    
+    const titleClasses = `
+        font-semibold transition-colors text-base
+        ${isLogout ? 'text-red-300' : 'text-gray-100'}
+        ${!isComingSoon && !isLogout ? 'group-hover:text-sky-300' : ''}
+    `;
+
+    const chevronClasses = `
+        h-6 w-6 text-gray-500 transition-colors
+        ${!isComingSoon ? 'group-hover:text-sky-300' : ''}
+    `;
+    
+    return (
+        <div onClick={handleClick} className={rowClasses}>
+            {isComingSoon && <div className="absolute top-2 right-12 text-xs font-bold bg-amber-900/50 text-amber-300 px-2 py-0.5 rounded-full z-10">SOON</div>}
+            <div className="p-3 bg-black/30 rounded-xl">{icon}</div>
+            <div className="flex-1">
+                <h3 className={titleClasses}>{title}</h3>
+                <p className="text-xs text-gray-400 mt-1">{description}</p>
+            </div>
+            {!isLogout && <ChevronRightIcon className={chevronClasses} />}
         </div>
-        {!isLogout && <ChevronRightIcon className="h-6 w-6 text-gray-500 group-hover:text-sky-300 transition-colors" />}
-    </div>
-);
+    );
+};
 
 
 // --- MAIN PROFILE SCREEN COMPONENT ---
@@ -87,20 +117,20 @@ const ProfileScreen: FC<{ onNavigate: (view: string, params?: any) => void }> = 
                     <ProfileRow title="Upcoming Alerts" description="Expiries for policies, payments, or deadlines" icon={<AlertsIcon />} onClick={() => onNavigate('notifications')} />
                 </Section>
                 
-                <Section title="Learning Hub" animationDelay={300}>
-                    <ProfileRow title="Learning" description="Bite-sized lessons on investing & wealth building" icon={<LearningIcon />} onClick={() => onNavigate('learning')} isComingSoon />
-                    <ProfileRow title="Expert Sessions" description="Book sessions with top finance experts" icon={<ExpertSessionsIcon />} onClick={() => onNavigate('bookExpert')} isComingSoon />
-                </Section>
-                
-                <Section title="Community & Feedback" animationDelay={400}>
-                    <ProfileRow title="Share Feedback & Suggestions" description="Help us improve your MYM experience" icon={<FeedbackIcon />} onClick={() => onNavigate('feedback')} />
-                    <ProfileRow title="Connect with Community" description="Discuss, and share insights" icon={<CommunityIcon />} onClick={() => onNavigate('community')} />
-                </Section>
-                
-                <Section title="Tools & Insights" animationDelay={500}>
+                <Section title="Tools & Insights" animationDelay={300}>
                     <ProfileRow title="AI Finance Chat" description="Ask, learn & plan instantly" icon={<AIChatIcon />} onClick={() => onNavigate('aiChat')} />
                     <ProfileRow title="Investment & Finance Calculators" description="SIPs, EMIs, compounding returns" icon={<CalculatorsIcon />} onClick={() => onNavigate('tools')} />
                     <ProfileRow title="Analytics & Insights" description="Advanced tools for financial decisions" icon={<AnalyticsIcon />} onClick={() => onNavigate('aiAnalysis')} />
+                </Section>
+                
+                <Section title="Learning Hub" animationDelay={400}>
+                    <ProfileRow title="Learning" description="Bite-sized lessons on investing & wealth building" icon={<LearningIcon />} isComingSoon />
+                    <ProfileRow title="Expert Sessions" description="Book sessions with top finance experts" icon={<ExpertSessionsIcon />} isComingSoon />
+                </Section>
+                
+                <Section title="Community & Feedback" animationDelay={500}>
+                    <ProfileRow title="Share Feedback & Suggestions" description="Help us improve your MYM experience" icon={<FeedbackIcon />} isComingSoon />
+                    <ProfileRow title="Connect with Community" description="Discuss, and share insights" icon={<CommunityIcon />} isComingSoon />
                 </Section>
 
                 <Section title="Application" animationDelay={600}>

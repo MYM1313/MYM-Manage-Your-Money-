@@ -1,10 +1,13 @@
 
+
 import React, { useState, useEffect, useMemo, FC, useRef, useCallback, useContext } from 'react';
 import { FinancialContext } from '../App';
 import ProgressBar from '../components/shared/ProgressBar';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import AddTransactionModal from '../components/modals/AddTransactionModal';
 import { AIIcon } from '../components/icons/AIIcon';
+import AITransactionModal from '../components/modals/AITransactionModal';
+import { ChatIcon as SparklesIcon } from '../components/icons/ChatIcon';
 
 const Notification: React.FC<{ message: string; show: boolean }> = ({ message, show }) => (
     <div className={`fixed top-24 right-6 z-50 transition-all duration-500 ease-in-out transform ${show ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-12'}`}>
@@ -1129,6 +1132,7 @@ const VisionFooter: FC = () => {
 const HomeScreen: React.FC<{ onNavigate: (view: string, params?: any) => void }> = ({ onNavigate }) => {
     const { savingsGoals } = useContext(FinancialContext);
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+    const [isAIModalOpen, setIsAIModalOpen] = useState(false);
     const [goalToFundId, setGoalToFundId] = useState<string | null>(null);
     const [showNotification, setShowNotification] = useState(false);
     const [showFreedomNotification, setShowFreedomNotification] = useState(false);
@@ -1166,14 +1170,21 @@ const HomeScreen: React.FC<{ onNavigate: (view: string, params?: any) => void }>
                     <ActionCarousel onNavigate={onNavigate} />
                     <NetWorthPanel onNavigate={onNavigate} />
                     <MonthlyFinancialFlowPanel />
-                    <div className="text-center animate-slide-up-fade-in" style={{ animationDelay: '250ms' }}>
-                        <button 
-                            onClick={() => setIsAddModalOpen(true)}
-                            className="inline-flex items-center space-x-2 px-6 py-3 bg-gradient-to-r from-sky-500 to-blue-600 text-white font-semibold rounded-full shadow-lg shadow-sky-500/30 hover:scale-105 active:scale-95 transition-transform transform text-base"
-                        >
-                            <PlusIcon />
-                            <span>Add Transaction</span>
-                        </button>
+                    <div className="flex gap-4 justify-center animate-slide-up-fade-in" style={{ animationDelay: '250ms' }}>
+                       <button 
+                           onClick={() => setIsAIModalOpen(true)}
+                           className="inline-flex items-center space-x-2 px-6 py-3 bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-semibold rounded-full shadow-lg shadow-purple-500/30 hover:scale-105 active:scale-95 transition-transform transform text-base"
+                       >
+                           <SparklesIcon className="h-5 w-5" />
+                           <span>Add with AI</span>
+                       </button>
+                       <button 
+                           onClick={() => setIsAddModalOpen(true)}
+                           className="inline-flex items-center space-x-2 px-6 py-3 bg-black/20 border border-white/10 text-gray-300 font-semibold rounded-full hover:scale-105 hover:bg-white/5 active:scale-95 transition-transform transform text-base"
+                       >
+                           <PlusIcon />
+                           <span>Add Manually</span>
+                       </button>
                     </div>
                     <div className="text-center animate-slide-up-fade-in" style={{ animationDelay: '280ms' }}>
                         <button onClick={handleConnectBankClick} className="group inline-flex items-center space-x-3 px-6 py-3 bg-black/20 border border-white/10 rounded-full transition-all duration-300 hover:border-sky-400/50 hover:shadow-[0_0_15px_rgba(56,189,248,0.2)]">
@@ -1193,6 +1204,7 @@ const HomeScreen: React.FC<{ onNavigate: (view: string, params?: any) => void }>
                 <VisionFooter />
             </div>
             <AddTransactionModal isVisible={isAddModalOpen} onClose={() => setIsAddModalOpen(false)} onNavigate={onNavigate} />
+            <AITransactionModal isVisible={isAIModalOpen} onClose={() => setIsAIModalOpen(false)} />
         </>
     );
 };

@@ -1,4 +1,3 @@
-
 import React, { useState, useContext, useMemo, useEffect, FC, useRef } from 'react';
 import { ResponsiveContainer, PieChart, Pie, Cell, Sector } from 'recharts';
 import { ChevronDownIcon } from '../components/icons/ChevronDownIcon';
@@ -8,6 +7,7 @@ import { InsightBadgeIcon } from '../components/icons/InsightBadgeIcon';
 import AddTransactionModal from '../components/modals/AddTransactionModal';
 import ProgressBar from '../components/shared/ProgressBar';
 import { BrainCircuitIcon } from '../components/icons/BrainCircuitIcon';
+import AITransactionModal from '../components/modals/AITransactionModal';
 
 
 // --- ICONS (Defined locally for this screen) ---
@@ -118,7 +118,7 @@ const AISpendingCoachPanel: React.FC<{ onNavigate: (view: string) => void }> = (
     }, [transactions]);
 
     return (
-        <div className="premium-glass aspect-square p-5 flex flex-col justify-between animate-slide-up-fade-in border-2 border-cyan-400/20 shadow-[0_0_25px_rgba(45,212,191,0.1)]">
+        <div className="premium-glass p-5 flex flex-col justify-between animate-slide-up-fade-in border-2 border-cyan-400/20 shadow-[0_0_25px_rgba(45,212,191,0.1)]">
             <div>
                 <div className="flex items-start space-x-3 mb-3">
                     <div className="flex-shrink-0 bg-gray-900/50 p-3 rounded-xl animate-float">
@@ -143,68 +143,6 @@ const AISpendingCoachPanel: React.FC<{ onNavigate: (view: string) => void }> = (
         </div>
     );
 };
-
-const AIBudgetImproverPanel: React.FC<{ onNavigate: (view: string) => void }> = ({ onNavigate }) => {
-    const { transactions, categorySplit } = useContext(FinancialContext);
-
-    const budgetTip = useMemo(() => {
-        const income = transactions.filter(t => t.superCategory === 'Income' && new Date(t.date).getMonth() === new Date().getMonth()).reduce((s,t) => s+t.amount, 0);
-        if (income === 0) {
-            return {
-                title: "Activate Your Budget",
-                text: "Add your income for this month to get personalized budget improvement suggestions from AI.",
-                action: null
-            }
-        }
-        const wantsSpent = transactions.filter(t => t.superCategory === 'Entertainment').reduce((s,t)=>s+t.amount,0);
-        const wantsPercent = (wantsSpent / income) * 100;
-        const wantsBudgetPercent = categorySplit.wants;
-
-        if (wantsPercent > wantsBudgetPercent + 5) {
-            const excess = wantsPercent - wantsBudgetPercent;
-            const potentialSavings = income * (excess / 100);
-            return {
-                title: "Budget Optimization",
-                text: `Your 'Wants' are at ${wantsPercent.toFixed(0)}%, over your ${wantsBudgetPercent}% target. Shifting ₹${Math.round(potentialSavings).toLocaleString()} to investments could significantly accelerate your goals.`,
-                action: "Simulate This Change"
-            };
-        }
-        return {
-            title: "On The Right Track",
-            text: "Your spending aligns well with your budget. Keep this discipline to build wealth consistently and effectively.",
-            action: "View Budget Settings"
-        };
-    }, [transactions, categorySplit]);
-    
-    return (
-        <div className="premium-glass aspect-square p-5 flex flex-col justify-between animate-slide-up-fade-in border-2 border-purple-500/20 shadow-[0_0_25px_rgba(168,85,247,0.2)]">
-            <div>
-                <div className="flex items-start space-x-3 mb-3">
-                    <div className="flex-shrink-0 bg-gray-900/50 p-3 rounded-xl animate-float" style={{ animationDelay: '0.5s' }}>
-                        <BrainCircuitIcon className="h-8 w-8 text-purple-300" />
-                    </div>
-                    <div>
-                        <h2 className="text-lg font-bold font-montserrat text-gray-100">AI Budget Improver</h2>
-                        <p className="text-xs text-gray-400">Dynamically optimize your allocations.</p>
-                    </div>
-                </div>
-                
-                <div className="bg-black/30 p-3 rounded-xl border border-white/10 h-28 overflow-y-auto no-scrollbar">
-                    <h3 className="font-semibold text-purple-300 text-sm mb-1">{budgetTip.title}</h3>
-                    <p className="text-xs text-gray-200">{budgetTip.text}</p>
-                </div>
-            </div>
-            
-            {budgetTip.action &&
-                <button onClick={() => {}} className="w-full mt-4 text-center text-sm font-semibold text-purple-300 bg-purple-900/50 py-2 rounded-lg hover:bg-purple-800/50 transition-colors flex items-center justify-center space-x-2">
-                    <span>{budgetTip.action}</span>
-                    <ChevronRightIcon className="h-4 w-4" />
-                </button>
-            }
-        </div>
-    );
-};
-
 
 const LeftoverInfoModal: React.FC<{ isVisible: boolean; onClose: () => void; }> = ({ isVisible, onClose }) => {
     if (!isVisible) return null;
@@ -715,6 +653,7 @@ const FaqSection: React.FC = () => {
 // --- MAIN SCREEN ---
 const ExpenseScreen: React.FC<{ onNavigate: (view: string, params?: any) => void }> = ({ onNavigate }) => {
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+    const [isAIModalOpen, setIsAIModalOpen] = useState(false);
     const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
 
     return (
@@ -722,13 +661,24 @@ const ExpenseScreen: React.FC<{ onNavigate: (view: string, params?: any) => void
             <div className="p-6 space-y-6 pb-24">
                 <MotivationalHeader />
                 <MonthlyGlanceCard />
-                <button onClick={() => setIsAddModalOpen(true)} className="w-full py-4 bg-gradient-to-r from-sky-500 to-blue-600 text-white font-bold rounded-2xl shadow-lg shadow-sky-500/10 hover:scale-[1.02] active:scale-100 transition-transform transform text-lg animate-slide-up-fade-in" style={{animationDelay: '300ms'}}>
-                    Add Transaction
-                </button>
+                <div className="flex gap-4 justify-center animate-slide-up-fade-in" style={{ animationDelay: '300ms' }}>
+                    <button 
+                        onClick={() => setIsAIModalOpen(true)}
+                        className="flex-1 py-4 bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-bold rounded-2xl shadow-lg shadow-purple-500/20 hover:scale-[1.02] active:scale-100 transition-transform transform text-lg flex items-center justify-center space-x-2"
+                    >
+                        <SparklesIcon className="h-6 w-6" />
+                        <span>Add with AI</span>
+                    </button>
+                    <button 
+                        onClick={() => setIsAddModalOpen(true)}
+                        className="flex-1 py-4 bg-black/20 border border-white/10 text-gray-300 font-bold rounded-2xl hover:bg-white/5 active:scale-95 transition-transform transform text-lg"
+                    >
+                        Add Manually
+                    </button>
+                </div>
                 <ExpenseBreakdownList onOpenSettings={() => setIsSettingsModalOpen(true)} />
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-slide-up-fade-in" style={{animationDelay: '100ms'}}>
+                <div className="animate-slide-up-fade-in" style={{animationDelay: '100ms'}}>
                     <AISpendingCoachPanel onNavigate={onNavigate} />
-                    <AIBudgetImproverPanel onNavigate={onNavigate} />
                 </div>
                 <ExpenseInsightsCards />
                 <VisualAnalyticsCard />
@@ -737,6 +687,7 @@ const ExpenseScreen: React.FC<{ onNavigate: (view: string, params?: any) => void
                 <FaqSection />
             </div>
             <AddTransactionModal isVisible={isAddModalOpen} onClose={() => setIsAddModalOpen(false)} onNavigate={onNavigate} />
+            <AITransactionModal isVisible={isAIModalOpen} onClose={() => setIsAIModalOpen(false)} />
             <SettingsModal isVisible={isSettingsModalOpen} onClose={() => setIsSettingsModalOpen(false)} />
         </>
     );

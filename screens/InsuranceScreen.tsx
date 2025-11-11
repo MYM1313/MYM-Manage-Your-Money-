@@ -45,34 +45,36 @@ const CountUp: FC<{ end: number; duration?: number; prefix?: string; suffix?: st
 };
 
 const Logo: React.FC = () => (
-    <svg width="42" height="42" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <svg width="42" height="42" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
         <defs>
-            <linearGradient id="goldArrowGradient" x1="0" y1="1" x2="1" y2="0">
-                <stop offset="0%" stopColor="#FBBF24" />
-                <stop offset="100%" stopColor="#FDE047" />
+            <linearGradient id="barFaceGradient" x1="0.5" y1="0" x2="0.5" y2="1">
+                <stop offset="0%" stop-color="#5B8DEA"/>
+                <stop offset="100%" stop-color="#3A6AC1"/>
             </linearGradient>
-            <linearGradient id="barGradient" x1="0.5" y1="0" x2="0.5" y2="1">
-                <stop offset="0%" stopColor="#38BDF8" />
-                <stop offset="100%" stopColor="#0E7490" />
+            <linearGradient id="barTopGradient" x1="0.5" y1="0" x2="0.5" y2="1">
+                <stop offset="0%" stop-color="#7CA3EE"/>
+                <stop offset="100%" stop-color="#5B8DEA"/>
             </linearGradient>
-            <filter id="goldGlow" x="-0.5" y="-0.5" width="2" height="2">
-                <feGaussianBlur in="SourceAlpha" stdDeviation="2.5" result="blur"/>
-                <feFlood floodColor="#FBBF24" result="floodColor"/>
-                <feComponentTransfer in="blur" result="glowMask">
-                    <feFuncA type="linear" slope="0.8"/>
-                </feComponentTransfer>
-                <feComposite in="floodColor" in2="glowMask" operator="in" result="softGlow_colored"/>
-                <feMerge>
-                    <feMergeNode in="softGlow_colored"/>
-                    <feMergeNode in="SourceGraphic"/>
-                </feMerge>
+            <filter id="starGlow">
+                <feGaussianBlur in="SourceGraphic" stdDeviation="1.5"/>
             </filter>
         </defs>
-        <path d="M 15 95 L 35 95 L 35 55 L 15 65 Z" fill="url(#barGradient)" />
-        <path d="M 40 95 L 60 95 L 60 35 L 40 45 Z" fill="url(#barGradient)" />
-        <path d="M 65 95 L 85 95 L 85 15 L 65 25 Z" fill="url(#barGradient)" />
-        <g filter="url(#goldGlow)">
-            <path d="M5 88 L65 28 L60 33 L83 10 L88 15 L68 35 L5 88Z" fill="url(#goldArrowGradient)" />
+        <circle cx="50" cy="50" r="47" fill="#0B142B"/>
+        <g transform="translate(0, 5)">
+            <rect x="22" y="40" width="14" height="45" fill="url(#barFaceGradient)"/>
+            <path d="M22 40 L25 37 L39 37 L36 40 Z" fill="url(#barTopGradient)" />
+            <rect x="40" y="53" width="14" height="32" fill="url(#barFaceGradient)"/>
+            <path d="M40 53 L43 50 L57 50 L54 53 Z" fill="url(#barTopGradient)" />
+            <rect x="58" y="35" width="14" height="50" fill="url(#barFaceGradient)"/>
+            <path d="M58 35 L61 32 L75 32 L72 35 Z" fill="url(#barTopGradient)" />
+            <rect x="76" y="25" width="14" height="60" fill="url(#barFaceGradient)"/>
+            <path d="M76 25 L79 22 L93 22 L90 25 Z" fill="url(#barTopGradient)" />
+        </g>
+        <g fill="white" filter="url(#starGlow)">
+            <path transform="translate(30 25) scale(0.5)" d="M10 0 L12 8 L20 10 L12 12 L10 20 L8 12 L0 10 L8 8 Z" />
+            <path transform="translate(48 18) scale(0.65)" d="M10 0 L12 8 L20 10 L12 12 L10 20 L8 12 L0 10 L8 8 Z" />
+            <path transform="translate(68 22) scale(0.6)" d="M10 0 L12 8 L20 10 L12 12 L10 20 L8 12 L0 10 L8 8 Z" />
+            <path transform="translate(82 17) scale(0.4)" d="M10 0 L12 8 L20 10 L12 12 L10 20 L8 12 L0 10 L8 8 Z" />
         </g>
     </svg>
 );
@@ -184,7 +186,7 @@ const ChecklistDetailModal: FC<{ onClose: () => void }> = ({ onClose }) => {
 }
 
 const CoverageCalculatorPanel: FC = () => (
-    <div className="bg-black/20 p-4 rounded-xl mt-4 animate-fade-in">
+    <div className="bg-black/20 p-4 rounded-xl mt-4">
         <h3 className="font-bold text-gray-200">Calculate Your Ideal Coverage</h3>
         <p className="text-xs text-gray-400 mb-3">A simplified version for quick estimation.</p>
         <div className="space-y-3">
@@ -224,11 +226,16 @@ const GapsAndRecommendationsPanel: FC<{ policies: InsurancePolicy[] } & {refProp
                 </div>
             </div>
             <div className="text-center mt-2">
-                <button onClick={() => setShowCalculator(!showCalculator)} className="text-sm font-semibold text-sky-400 hover:text-sky-300 transition-colors">
-                    Calculate coverage amt your self {showCalculator ? '▲' : '▼'}
+                <button onClick={() => setShowCalculator(!showCalculator)} className="text-sm font-semibold text-sky-400 hover:text-sky-300 transition-colors flex items-center justify-center w-full">
+                    <span>Calculate Coverage Amount</span>
+                    <ChevronDownIcon className={`h-4 w-4 ml-1 transition-transform duration-300 ${showCalculator ? 'rotate-180' : ''}`} />
                 </button>
             </div>
-            {showCalculator && <CoverageCalculatorPanel />}
+            <div className={`grid transition-all duration-500 ease-in-out ${showCalculator ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
+                <div className="overflow-hidden">
+                    <CoverageCalculatorPanel />
+                </div>
+            </div>
         </div>
     );
 }
@@ -256,7 +263,6 @@ const WhyDittoModal: FC<{ onClose: () => void }> = ({ onClose }) => (
     </div>
 );
 
-// FIX: Destructure `onWhyDittoClick` from props to make it available inside the component.
 const CoreFeaturesPanel: FC<{ onWhyDittoClick: () => void }> = ({ onWhyDittoClick }) => {
     const features = [
         { title: "Unbiased Advice", description: "Honest, spam-free guidance from certified experts." },
@@ -401,49 +407,57 @@ const FaqPanel: FC<{ onNavigate: (v: string) => void; searchTerm: string; refPro
     return (
         <GlassmorphicPanel ref={refProp} className="!p-5 animate-slide-up-fade-in" style={{ animationDelay: '900ms' }}>
             <h2 className="text-xl font-bold mb-4">Frequently Asked Questions</h2>
-            <div className="space-y-2">{filteredFaqs.map((faq, index) => <div key={index} className="bg-black/30 rounded-lg overflow-hidden"><button onClick={() => setOpenFaq(openFaq === index ? null : index)} className="w-full flex justify-between items-center text-left p-4"><span className="font-semibold text-gray-200">{faq.q}</span><ChevronDownIcon className={`transform transition-transform ${openFaq === index ? 'rotate-180' : ''}`} /></button><div className={`grid transition-[grid-template-rows] duration-300 ease-in-out ${openFaq === index ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'}`}><div className="overflow-hidden"><p className="px-4 pb-4 text-gray-400 text-sm">{faq.a}</p></div></div></div>)}</div>
-            <button onClick={() => onNavigate('aiChat')} className="w-full mt-4 py-2.5 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-semibold rounded-xl text-sm">Ask AI Mentor →</button>
+            <div className="space-y-2">{filteredFaqs.map((faq, index) => <div key={index} className="bg-black/30 rounded-lg overflow-hidden"><button onClick={() => setOpenFaq(openFaq === index ? null : index)} className="w-full flex justify-between items-center text-left p-4"><span className="font-semibold text-gray-200">{faq.q}</span><ChevronDownIcon className={`transform transition-transform ${openFaq === index ? 'rotate-180' : ''}`} /></button><div className={`grid transition-[grid-template-rows] duration-300 ease-in-out ${openFaq === index ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'}`}>
+                <div className="overflow-hidden">
+                    <div className="px-4 pb-4 text-sm text-gray-400">
+                        {faq.a}
+                    </div>
+                </div>
+            </div></div>)}</div>
         </GlassmorphicPanel>
     );
 };
 
-
-// --- MAIN VAULT VIEW ---
-const VaultView: FC<{ onNavigate: (view: string, params?: any) => void; }> = ({ onNavigate }) => {
+const InsuranceScreen: FC<{ onBack: () => void; onNavigate: (view: string, params?: any) => void; }> = ({ onBack, onNavigate }) => {
     const { insurancePolicies } = useContext(FinancialContext);
     const [searchTerm, setSearchTerm] = useState('');
-    const [isChecklistModalOpen, setIsChecklistModalOpen] = useState(false);
-    const [isWhyDittoModalOpen, setIsWhyDittoModalOpen] = useState(false);
-
-    const recommendationsRef = useRef<HTMLDivElement>(null);
+    const [showWhyDitto, setShowWhyDitto] = useState(false);
+    const [showChecklistDetails, setShowChecklistDetails] = useState(false);
+    const gapsRef = useRef<HTMLDivElement>(null);
     const faqRef = useRef<HTMLDivElement>(null);
 
+    const filteredPolicies = useMemo(() => {
+        if (!searchTerm) return insurancePolicies;
+        return insurancePolicies.filter(p => p.provider.toLowerCase().includes(searchTerm.toLowerCase()) || p.type.toLowerCase().includes(searchTerm.toLowerCase()));
+    }, [insurancePolicies, searchTerm]);
+
     return (
-        <div className="p-6 space-y-6 animate-fade-in">
-            <VaultHeaderPanel searchTerm={searchTerm} setSearchTerm={setSearchTerm} onNavigate={onNavigate} />
-            <ChecklistPanel onOpenDetails={() => setIsChecklistModalOpen(true)} />
-            <GapsAndRecommendationsPanel policies={insurancePolicies} refProp={recommendationsRef} />
-            <MyPoliciesWalletPanel policies={insurancePolicies} />
-            <CoreFeaturesPanel onWhyDittoClick={() => setIsWhyDittoModalOpen(true)} />
-            <VisualInsightsPanel policies={insurancePolicies} />
-            <AIChatTeaserPanel onNavigate={onNavigate} />
-            <LearningHubAndToolsPanel onNavigate={onNavigate} />
-            <FaqPanel onNavigate={onNavigate} searchTerm={searchTerm} refProp={faqRef} />
-            {isChecklistModalOpen && <ChecklistDetailModal onClose={() => setIsChecklistModalOpen(false)} />}
-            {isWhyDittoModalOpen && <WhyDittoModal onClose={() => setIsWhyDittoModalOpen(false)} />}
-        </div>
+        <>
+            <div className="h-full flex flex-col bg-[#0D1117] text-gray-200 animate-fade-in">
+                <header className="sticky top-0 z-20 p-4 bg-[#0D1117]/80 backdrop-blur-xl">
+                    <div className="flex items-center">
+                        <button onClick={onBack} className="p-2 -ml-2 text-gray-300 rounded-full hover:bg-white/10"><ChevronLeftIcon /></button>
+                        <div className="flex-1"></div>
+                        <div className="w-8"></div>
+                    </div>
+                </header>
+                <main className="flex-1 overflow-y-auto no-scrollbar p-6 pt-0 space-y-6">
+                    <VaultHeaderPanel searchTerm={searchTerm} setSearchTerm={setSearchTerm} onNavigate={onNavigate} />
+                    <ChecklistPanel onOpenDetails={() => setShowChecklistDetails(true)} />
+                    <GapsAndRecommendationsPanel policies={filteredPolicies} refProp={gapsRef} />
+                    <MyPoliciesWalletPanel policies={filteredPolicies} />
+                    <CoreFeaturesPanel onWhyDittoClick={() => setShowWhyDitto(true)} />
+                    <VisualInsightsPanel policies={filteredPolicies} />
+                    <AIChatTeaserPanel onNavigate={onNavigate} />
+                    <LearningHubAndToolsPanel onNavigate={onNavigate} />
+                    <FaqPanel onNavigate={onNavigate} searchTerm={searchTerm} refProp={faqRef} />
+                </main>
+            </div>
+            {showWhyDitto && <WhyDittoModal onClose={() => setShowWhyDitto(false)} />}
+            {showChecklistDetails && <ChecklistDetailModal onClose={() => setShowChecklistDetails(false)} />}
+        </>
     );
 };
 
-// --- MAIN SCREEN ---
-const InsuranceScreen: FC<{ onBack: () => void; onNavigate: (view: string, params?: any) => void; }> = ({ onBack, onNavigate }) => {
-    return (
-        <div className="h-full flex flex-col bg-gradient-to-b from-[#10141b] to-[#0D1117] text-gray-200">
-            <main className="flex-1 overflow-y-auto no-scrollbar">
-                <VaultView onNavigate={onNavigate} />
-            </main>
-        </div>
-    );
-};
-
+// FIX: Change to a default export to resolve the import error in `App.tsx`.
 export default InsuranceScreen;

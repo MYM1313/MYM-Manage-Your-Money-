@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3e%3cdefs%3e%3clinearGradient id='gold' x1='0' y1='1' x2='1' y2='0'%3e%3cstop stop-color='%23FBBF24' /%3e%3cstop stop-color='%23FDE047' /%3e%3c/linearGradient%3e%3clinearGradient id='bar' x1='0.5' y1='0' x2='0.5' y2='1'%3e%3cstop stop-color='%2338BDF8' /%3e%3cstop stop-color='%230E7490' /%3e%3c/linearGradient%3e%3c/defs%3e%3cpath d='M 15 95 L 35 95 L 35 55 L 15 65 Z' fill='url(%23bar)' /%3e%3cpath d='M 40 95 L 60 95 L 60 35 L 40 45 Z' fill='url(%23bar)' /%3e%3cpath d='M 65 95 L 85 95 L 85 15 L 65 25 Z' fill='url(%23bar)' /%3e%3cpath d='M5 88 L65 28 L60 33 L83 10 L88 15 L68 35 L5 88Z' fill='url(%23gold)' /%3e%3c/svg%3e" />
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3e%3cdefs%3e%3clinearGradient id='barFaceGradient' x1='0.5' y1='0' x2='0.5' y2='1'%3e%3cstop offset='0%25' stop-color='%235B8DEA'/%3e%3cstop offset='100%25' stop-color='%233A6AC1'/%3e%3c/linearGradient%3e%3clinearGradient id='barTopGradient' x1='0.5' y1='0' x2='0.5' y2='1'%3e%3cstop offset='0%25' stop-color='%237CA3EE'/%3e%3cstop offset='100%25' stop-color='%235B8DEA'/%3e%3c/linearGradient%3e%3cfilter id='starGlow'%3e%3cfeGaussianBlur in='SourceGraphic' stdDeviation='1.5'/%3e%3c/filter%3e%3c/defs%3e%3ccircle cx='50' cy='50' r='47' fill='%230B142B'/%3e%3cg transform='translate(0, 5)'%3e%3crect x='22' y='40' width='14' height='45' fill='url(%23barFaceGradient)'/%3e%3cpath d='M22 40 L25 37 L39 37 L36 40 Z' fill='url(%23barTopGradient)'/%3e%3crect x='40' y='53' width='14' height='32' fill='url(%23barFaceGradient)'/%3e%3cpath d='M40 53 L43 50 L57 50 L54 53 Z' fill='url(%23barTopGradient)'/%3e%3crect x='58' y='35' width='14' height='50' fill='url(%23barFaceGradient)'/%3e%3cpath d='M58 35 L61 32 L75 32 L72 35 Z' fill='url(%23barTopGradient)'/%3e%3crect x='76' y='25' width='14' height='60' fill='url(%23barFaceGradient)'/%3e%3cpath d='M76 25 L79 22 L93 22 L90 25 Z' fill='url(%23barTopGradient)'/%3e%3c/g%3e%3cg fill='white' filter='url(%23starGlow)'%3e%3cpath transform='translate(30 25) scale(0.5)' d='M10 0 L12 8 L20 10 L12 12 L10 20 L8 12 L0 10 L8 8 Z'/%3e%3cpath transform='translate(48 18) scale(0.65)' d='M10 0 L12 8 L20 10 L12 12 L10 20 L8 12 L0 10 L8 8 Z'/%3e%3cpath transform='translate(68 22) scale(0.6)' d='M10 0 L12 8 L20 10 L12 12 L10 20 L8 12 L0 10 L8 8 Z'/%3e%3cpath transform='translate(82 17) scale(0.4)' d='M10 0 L12 8 L20 10 L12 12 L10 20 L8 12 L0 10 L8 8 Z'/%3e%3c/g%3e%3c/svg%3e" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>MYM - Manage Your Money</title>
     <script src="https://cdn.tailwindcss.com"></script>
@@ -13,17 +13,23 @@
       :root {
         --bg-dark: #0D1117;
         --bg-deep-navy: #0a0f1f;
-        --glow-blue: rgba(56, 189, 248, 0.7);
-        --glow-gold: rgba(251, 191, 36, 0.7);
-        --glow-green: rgba(0, 203, 169, 0.7);
-        --glow-emerald: rgba(0, 203, 169, 0.7);
-        --glow-orange: rgba(251, 146, 60, 0.7);
+        --glow-blue: rgba(56, 189, 248, 0.85);
+        --glow-gold: rgba(251, 191, 36, 0.85);
+        --glow-green: rgba(0, 203, 169, 0.85);
+        --glow-emerald: rgba(0, 203, 169, 0.85);
+        --glow-orange: rgba(251, 146, 60, 0.85);
+      }
+      html {
+        filter: saturate(1.15) contrast(1.05);
       }
       body {
         font-family: 'Poppins', sans-serif;
         background-color: var(--bg-dark);
         background-image: radial-gradient(circle at top, rgba(17, 24, 39, 0.8), transparent 40%);
         color: #e5e7eb;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        text-rendering: optimizeLegibility;
       }
       .font-montserrat { font-family: 'Montserrat', sans-serif; }
       .no-scrollbar::-webkit-scrollbar { display: none; }
@@ -288,11 +294,11 @@
       /* Custom Utilities */
       .premium-glass {
         position: relative;
-        background: rgba(24, 28, 39, 0.6);
-        backdrop-filter: blur(20px);
-        -webkit-backdrop-filter: blur(20px);
+        background: rgba(24, 28, 39, 0.65);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
         border-radius: 24px;
-        border: 1px solid rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.12);
         box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
         transition: transform 0.3s cubic-bezier(0.25, 1, 0.5, 1), box-shadow 0.3s cubic-bezier(0.25, 1, 0.5, 1);
         overflow: hidden;
@@ -305,7 +311,7 @@
         transform: translate(-50%, -50%);
         width: 300px;
         height: 300px;
-        background: radial-gradient(circle, rgba(56, 189, 248, 0.1) 0%, transparent 70%);
+        background: radial-gradient(circle, rgba(56, 189, 248, 0.15) 0%, transparent 70%);
         opacity: 0;
         transition: opacity 0.5s;
         pointer-events: none;
@@ -315,8 +321,8 @@
       }
       .premium-glass:hover {
         transform: translateY(-4px) scale(1.01);
-        box-shadow: 0 16px 40px rgba(0,0,0,0.5), 0 0 20px rgba(56, 189, 248, 0.1);
-        border-color: rgba(255, 255, 255, 0.15);
+        box-shadow: 0 16px 40px rgba(0,0,0,0.5), 0 0 25px rgba(56, 189, 248, 0.15);
+        border-color: rgba(255, 255, 255, 0.18);
       }
       
       .timeline-scrollbar::-webkit-scrollbar {
@@ -347,12 +353,12 @@
       input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 20px; height: 20px; background: #FFD700; border-radius: 50%; cursor: pointer; border: 3px solid #1a1a1a; box-shadow: 0 0 10px rgba(255,215,0,0.5); }
       input[type="range"]::-moz-range-thumb { width: 20px; height: 20px; background: #FFD700; border-radius: 50%; cursor: pointer; border: 3px solid #1a1a1a; box-shadow: 0 0 10px rgba(255,215,0,0.5); }
       
-      input[type="range"].range-sky::-webkit-slider-thumb { background: #38bdf8; box-shadow: 0 0 10px rgba(56, 189, 248,0.5); }
-      input[type="range"].range-sky::-moz-range-thumb { background: #38bdf8; box-shadow: 0 0 10px rgba(56, 189, 248,0.5); }
+      input[type="range"].range-sky::-webkit-slider-thumb { background: #64748b; box-shadow: 0 0 10px rgba(100, 116, 139, 0.5); }
+      input[type="range"].range-sky::-moz-range-thumb { background: #64748b; box-shadow: 0 0 10px rgba(100, 116, 139, 0.5); }
       
-      input[type="range"].range-blue { -webkit-appearance: none; appearance: none; width: 100%; height: 8px; background: rgba(10, 20, 40, 0.5); border-radius: 8px; outline: none; transition: background 0.3s; cursor: pointer; border: 1px solid rgba(56, 189, 248, 0.2); }
-      input[type="range"].range-blue::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 24px; height: 24px; background-image: linear-gradient(to right, #38bdf8, #6366f1); border-radius: 50%; cursor: pointer; border: 3px solid #1e293b; box-shadow: 0 0 15px rgba(56, 189, 248, 0.5); transition: transform 0.2s ease; }
-      input[type="range"].range-blue::-moz-range-thumb { width: 24px; height: 24px; background-image: linear-gradient(to right, #38bdf8, #6366f1); border-radius: 50%; cursor: pointer; border: 3px solid #1e293b; box-shadow: 0 0 15px rgba(56, 189, 248, 0.5); }
+      input[type="range"].range-blue { -webkit-appearance: none; appearance: none; width: 100%; height: 8px; background: rgba(10, 20, 40, 0.5); border-radius: 8px; outline: none; transition: background 0.3s; cursor: pointer; border: 1px solid rgba(100, 116, 139, 0.2); }
+      input[type="range"].range-blue::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 24px; height: 24px; background-image: linear-gradient(to right, #64748b, #475569); border-radius: 50%; cursor: pointer; border: 3px solid #1e293b; box-shadow: 0 0 15px rgba(100, 116, 139, 0.4); transition: transform 0.2s ease; }
+      input[type="range"].range-blue::-moz-range-thumb { width: 24px; height: 24px; background-image: linear-gradient(to right, #64748b, #475569); border-radius: 50%; cursor: pointer; border: 3px solid #1e293b; box-shadow: 0 0 15px rgba(100, 116, 139, 0.4); }
       input[type="range"].range-blue:active::-webkit-slider-thumb { transform: scale(1.1); }
       
       input[type=number]::-webkit-inner-spin-button, 
@@ -366,8 +372,8 @@
       
       input[type="text"]:focus, input[type="number"]:focus {
         transform: scale(1.02);
-        border-color: #38bdf8; /* sky-400 */
-        box-shadow: 0 0 15px rgba(56, 189, 248, 0.2);
+        border-color: #64748b; /* slate-500 */
+        box-shadow: 0 0 15px rgba(100, 116, 139, 0.3);
       }
 
       /* Light Theme */
@@ -378,15 +384,15 @@
         color: #111827; /* gray-900 */
       }
       html.light .premium-glass {
-        background: rgba(255, 255, 255, 0.7);
-        backdrop-filter: blur(20px);
-        -webkit-backdrop-filter: blur(20px);
-        border: 1px solid rgba(0, 0, 0, 0.08);
+        background: rgba(255, 255, 255, 0.75);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border: 1px solid rgba(0, 0, 0, 0.1);
         box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.1);
       }
       html.light .premium-glass:hover {
         box-shadow: 0 16px 40px rgba(0,0,0,0.15);
-        border-color: rgba(0, 0, 0, 0.1);
+        border-color: rgba(0, 0, 0, 0.12);
       }
       html.light .text-gray-100 { color: #111827; }
       html.light .text-gray-200 { color: #1f2937; }

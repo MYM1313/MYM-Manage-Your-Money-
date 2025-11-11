@@ -1,4 +1,4 @@
-import React, { useState, useMemo, FC, useEffect, useContext, useRef } from 'react';
+import React, { useState, useMemo, FC, useEffect, useContext, useRef, useCallback } from 'react';
 import { FinancialContext } from '../App';
 import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip, BarChart, Bar } from 'recharts';
 import { ChevronRightIcon } from '../components/icons/ChevronRightIcon';
@@ -52,7 +52,7 @@ const RotatingHeader: FC = () => {
 
     return (
         <header className="text-center animate-slide-up-fade-in">
-            <h1 className="text-4xl font-bold text-gray-100 font-montserrat cinematic-title">Investment</h1>
+            <h1 className="text-4xl font-bold text-gray-100 font-montserrat cinematic-title">Investment Hub</h1>
             <div className="relative h-5 mt-2 overflow-hidden">
                 {phrases.map((phrase, i) => (
                     <p key={i} className={`absolute inset-0 text-md text-gray-400 transition-all duration-700 ease-in-out ${i === index ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-full'}`}>{phrase}</p>
@@ -194,6 +194,99 @@ const InvestmentInsightsPanel: FC = () => {
     );
 };
 
+const WhyInvestPanel: FC = () => {
+    const items = [
+        { title: 'Why Invest?', text: 'Investing helps your money grow, outpacing inflation to build wealth for your future goals and financial independence.', icon: <TrendingUpIcon /> },
+        { title: 'Beat Inflation', text: 'Inflation erodes the purchasing power of your money over time. Investing in assets that grow faster than inflation is crucial to maintain and increase your wealth.', icon: <ClockIcon className="h-8 w-8 text-amber-400" /> },
+        { title: 'Power of Compounding', text: 'The best time was yesterday. The next best time is now. Starting early harnesses the power of compounding.', icon: <AIIcon className="h-8 w-8 text-amber-400" /> },
+        { title: 'Achieve Goals', text: 'Whether it\'s for retirement, a house, or education, investing helps you reach your financial goals faster.', icon: <CalendarIcon className="h-8 w-8 text-amber-400" /> },
+        { title: 'Build Wealth', text: 'Investing is a marathon, not a sprint. A long-term horizon (5+ years) allows your investments to weather market fluctuations and grow significantly.', icon: <TrophyIcon /> },
+        { title: 'Financial Freedom', text: 'Start early, invest regularly, stay diversified, and remain patient. Your future self will thank you.', icon: <StarIcon className="w-8 w-8 text-amber-400" /> },
+    ];
+
+    const [currentIndex, setCurrentIndex] = useState(0);
+    const scrollRef = useRef<HTMLDivElement>(null);
+    const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+    const resetTimeout = useCallback(() => {
+        if (timeoutRef.current) {
+            clearTimeout(timeoutRef.current);
+        }
+    }, []);
+
+    const handleScroll = useCallback(() => {
+        if (scrollRef.current) {
+            const scrollLeft = scrollRef.current.scrollLeft;
+            const itemWidth = scrollRef.current.offsetWidth;
+            if (itemWidth > 0) {
+                const newIndex = Math.round(scrollLeft / itemWidth);
+                if (newIndex !== currentIndex) {
+                    setCurrentIndex(newIndex);
+                }
+            }
+        }
+    }, [currentIndex]);
+    
+    const handleDotClick = (index: number) => {
+        const scrollContainer = scrollRef.current;
+        if (scrollContainer) {
+            const scrollLeft = index * scrollContainer.offsetWidth;
+            scrollContainer.scrollTo({ left: scrollLeft, behavior: 'smooth' });
+        }
+    };
+    
+    useEffect(() => {
+        resetTimeout();
+        timeoutRef.current = setTimeout(() => {
+            const nextIndex = (currentIndex + 1) % items.length;
+            handleDotClick(nextIndex);
+        }, 5000);
+
+        return () => {
+            resetTimeout();
+        };
+    }, [currentIndex, items.length, resetTimeout]);
+    
+
+    return (
+        <div className="animate-slide-in-bottom" style={{animationDelay:'200ms'}}>
+            <h2 className="text-2xl font-bold text-gray-100 mb-4 px-2 font-montserrat">Why Invest?</h2>
+             <div
+                ref={scrollRef}
+                onScroll={handleScroll}
+                className="flex overflow-x-auto snap-x snap-mandatory scroll-smooth no-scrollbar -mx-2"
+            >
+                {items.map((item, index) => (
+                    <div key={index} className="w-full flex-shrink-0 snap-center px-2">
+                        <GlassmorphicPanel className="!p-6 h-64 flex flex-col justify-between">
+                             <div>
+                                <div className="flex items-center space-x-3 mb-3">
+                                    <div className="p-3 bg-black/30 rounded-xl">{item.icon}</div>
+                                    <h3 className="text-xl font-bold text-gray-100">{item.title}</h3>
+                                </div>
+                                <p className="text-sm text-gray-300">{item.text}</p>
+                            </div>
+                        </GlassmorphicPanel>
+                    </div>
+                ))}
+            </div>
+            <div className="flex justify-center items-center space-x-2 mt-4">
+                {items.map((_, index) => (
+                    <button
+                        key={index}
+                        onClick={() => handleDotClick(index)}
+                        aria-label={`Go to slide ${index + 1}`}
+                        className={`h-2.5 rounded-full transition-all duration-300 ease-in-out ${
+                            currentIndex === index ? 'w-6 bg-sky-400' : 'w-2.5 bg-gray-600'
+                        }`}
+                    />
+                ))}
+            </div>
+        </div>
+    );
+};
+
+
 // --- Panel #4: Asset Allocation Charts ---
 const AllocationCharts: FC = () => {
     const { investments } = useContext(FinancialContext);
@@ -204,7 +297,6 @@ const AllocationCharts: FC = () => {
             return acc;
         }, {} as Record<InvestmentCategory, number>);
 
-        // FIX: Replaced Object.entries with Object.keys to avoid 'unknown' type inference on values, which caused a type error on the following reduce function.
         const pData = Object.keys(dataByCategory).map((key) => ({
             name: key,
             value: dataByCategory[key as InvestmentCategory],
@@ -253,115 +345,88 @@ const AllocationCharts: FC = () => {
     );
 };
 
-const Logo: React.FC<{className?: string}> = ({className}) => (
-    <svg viewBox="0 0 100 100" className={className}>
-        <defs>
-            <linearGradient id="goldArrowGradient" x1="0" y1="1" x2="1" y2="0"><stop offset="0%" stopColor="#FBBF24" /><stop offset="100%" stopColor="#FDE047" /></linearGradient>
-            <linearGradient id="barGradient" x1="0.5" y1="0" x2="0.5" y2="1"><stop offset="0%" stopColor="#38BDF8" /><stop offset="100%" stopColor="#0E7490" /></linearGradient>
-        </defs>
-        <path d="M 15 95 L 35 95 L 35 55 L 15 65 Z" fill="url(#barGradient)" />
-        <path d="M 40 95 L 60 95 L 60 35 L 40 45 Z" fill="url(#barGradient)" />
-        <path d="M 65 95 L 85 95 L 85 15 L 65 25 Z" fill="url(#barGradient)" />
-        <path d="M5 88 L65 28 L60 33 L83 10 L88 15 L68 35 L5 88Z" fill="url(#goldArrowGradient)" />
-    </svg>
-);
-
-const WhyGrowwModal: FC<{ onClose: () => void; isVisible: boolean }> = ({ onClose, isVisible }) => {
-    if (!isVisible) return null;
-
-    const features = [
-        { icon: <PortfolioTrackingIcon className="w-8 h-8 text-sky-300" />, title: "Smart Portfolio Tracking", description: "Monitor all your investments in one place with intelligent insights." },
-        { icon: <GoalInvestingIcon className="w-8 h-8 text-green-300" />, title: "Goal-Based Investing", description: "Create and track financial goals, from retirement to your next vacation." },
-        { icon: <MarketInsightsIcon className="w-8 h-8 text-purple-300" />, title: "Real-Time Market Insights", description: "Stay ahead with live market data, news, and expert analysis." },
-        { icon: <SipLumpsumIcon className="w-8 h-8 text-amber-300" />, title: "Simplified SIP & Lumpsum", description: "Start investing with as little as ₹100 through easy, flexible plans." },
-    ];
-
-    return (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-end animate-fade-in" onClick={onClose}>
-            <div className="w-full bg-gradient-to-t from-[#0a0f1f] to-[#1e293b] border-t-2 border-green-500/50 rounded-t-3xl max-h-[75vh] flex flex-col animate-slide-up" onClick={e => e.stopPropagation()}>
-                <header className="p-4 flex-shrink-0 text-center relative">
-                    <div className="absolute top-3 left-1/2 -translate-x-1/2 w-16 h-1.5 bg-gray-700 rounded-full"></div>
-                    <button onClick={onClose} className="absolute top-4 right-4 p-1 text-gray-500 hover:text-white"><XIcon/></button>
-                    <div className="mt-8 flex justify-center items-center gap-4">
-                         <GrowwIcon className="w-12 h-12" />
-                    </div>
-                    <h2 className="text-2xl font-bold text-gray-100 mt-4">Why Invest with Groww?</h2>
-                    <p className="text-sm text-gray-400">Simplicity, Trust, and Power in one app.</p>
-                </header>
-                <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4 no-scrollbar">
-                    {features.map((feature, index) => (
-                        <div key={index} className="bg-black/30 p-4 rounded-xl flex items-center gap-4 animate-slide-in-bottom" style={{ animationDelay: `${100 + index * 100}ms` }}>
-                            <div className="p-3 bg-gray-900/50 rounded-xl">{feature.icon}</div>
-                            <div>
-                                <h3 className="font-semibold text-gray-200">{feature.title}</h3>
-                                <p className="text-sm text-gray-400">{feature.description}</p>
-                            </div>
-                        </div>
-                    ))}
-                    <div className="bg-black/30 p-4 rounded-xl animate-slide-in-bottom" style={{ animationDelay: '500ms' }}>
-                        <p className="text-center text-sm italic text-gray-300">"Using Groww was a turning point. My portfolio has grown 18% in just one year!"</p>
-                        <p className="text-right text-xs font-semibold text-gray-400 mt-2">- Anjali R., Bangalore</p>
-                    </div>
+const AIChatPanel: FC<{ onNavigate: (view: string) => void }> = ({ onNavigate }) => (
+    <GlassmorphicPanel
+        onClick={() => onNavigate('aiChat')}
+        className="!p-5 cursor-pointer group animate-slide-in-bottom border-2 border-transparent hover:border-purple-500/50 bg-gradient-to-br from-indigo-900/40 to-purple-900/40"
+        style={{ animation: 'orb-pulse 6s infinite ease-in-out', animationDelay: '350ms' }}
+    >
+        <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+                <div className="p-3 bg-black/30 rounded-full">
+                    <AIIcon className="h-8 w-8 text-purple-300" />
+                </div>
+                <div>
+                    <h3 className="text-xl font-bold font-montserrat text-gray-100">Go Deeper with AI</h3>
+                    <p className="text-sm text-gray-400">Ask about your portfolio, market trends, or strategies.</p>
                 </div>
             </div>
+            <ChevronRightIcon className="h-8 w-8 text-gray-600 transition-transform duration-300 group-hover:translate-x-1 group-hover:text-purple-300" />
         </div>
-    );
-};
-
-const ThreeDBar: FC<any> = ({ fill, x, y, width, height }) => {
-    const topPath = `M${x},${y} L${x + 6},${y - 6} L${x + width + 6},${y - 6} L${x + width},${y} Z`;
-    const sidePath = `M${x + width},${y} L${x + width + 6},${y - 6} L${x + width + 6},${y + height - 6} L${x + width},${y + height} Z`;
-    
-    return (
-        <g className="transition-transform duration-300 ease-out hover:scale-105">
-            <rect x={x} y={y} width={width} height={height} fill={fill} />
-            <path d={topPath} fill="#34D399" />
-            <path d={sidePath} fill="#059669" />
-        </g>
-    );
-};
-
+    </GlassmorphicPanel>
+);
 
 const GrowwPanel: FC<{ onWhyClick: () => void }> = ({ onWhyClick }) => {
-    const chartData = useMemo(() => [
-        { name: '2021', value: 30 }, { name: '2022', value: 45 }, { name: '2023', value: 70 }, { name: '2024', value: 85 }
-    ], []);
+    const UserGroupIcon: FC<{ className?: string }> = ({ className }) => <svg xmlns="http://www.w3.org/2000/svg" className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M18 18.72a9.094 9.094 0 003.741-.479 3 3 0 00-4.682-2.72m-7.5-2.952a4.5 4.5 0 014.5 0m-4.5 0a4.5 4.5 0 00-4.5 0m3.75 4.5V14.25m0 0H9m1.5 0H12m0 0V9m0 0H9m1.5 0H12m0 0V6.75m0 0H9m1.5 0H12" /></svg>;
+    const LocalStarIcon: FC<{ className?: string }> = ({ className }) => <svg xmlns="http://www.w3.org/2000/svg" className={className} viewBox="0 0 20 20" fill="currentColor"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" /></svg>;
 
     return (
-        <div className="group animate-slide-in-bottom" style={{ animationDelay: '400ms', perspective: '1500px' }}>
+        <div className="animate-slide-in-bottom" style={{ animationDelay: '400ms' }}>
             <GlassmorphicPanel 
-                className="!p-6 relative overflow-hidden transition-transform duration-500 ease-out group-hover:scale-[1.03] group-hover:[transform:rotateX(5deg)_rotateY(-5deg)]"
-                style={{ transformStyle: 'preserve-3d' }}
+                className="!p-6 relative overflow-hidden transition-all duration-300 group hover:!shadow-[0_20px_50px_rgba(0,208,156,0.2)]"
             >
-                <div className="absolute inset-0 z-0 opacity-20 group-hover:opacity-30 transition-opacity duration-500" style={{ background: 'radial-gradient(circle at 100% 0%, rgba(0, 208, 156, 0.4), transparent 50%), radial-gradient(circle at 0% 100%, rgba(0, 208, 156, 0.2), transparent 50%)' }}></div>
-                <div className="absolute inset-0 rounded-[24px] border border-transparent group-hover:border-green-400/50 transition-all duration-300 animate-neon-pulse-green" style={{ animation: 'neon-pulse-green 4s infinite' }}></div>
-                
-                <div className="relative z-10 flex flex-col h-full">
-                    <h2 className="text-2xl font-bold text-gray-100 font-montserrat leading-tight" style={{textShadow: '0 0 10px rgba(0, 208, 156, 0.5)'}}>Grow Your Wealth with Groww 🚀</h2>
-                    <p className="text-sm text-green-300/80 font-medium mt-1">Invest smart, grow faster, and take control of your financial future. Every step counts – let Groww guide your journey.</p>
-                    
-                    <div className="flex-1 flex items-end my-6 gap-4">
-                        <div className="w-3/5 h-32">
-                             <ResponsiveContainer width="100%" height="100%">
-                                <BarChart data={chartData} margin={{ top: 10, right: 0, left: 0, bottom: 5 }}>
-                                    <Bar dataKey="value" fill="#00D09C" shape={<ThreeDBar />} isAnimationActive={true} animationDuration={1500} />
-                                </BarChart>
-                            </ResponsiveContainer>
+                {/* Background Grid */}
+                <div 
+                    className="absolute inset-0 z-0 opacity-20 group-hover:opacity-30 transition-opacity" 
+                    style={{
+                        backgroundImage: 'linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px)',
+                        backgroundSize: '20px 20px'
+                    }}
+                />
+
+                <div className="relative z-10 flex flex-col">
+                    <div className="flex justify-between items-start">
+                        <div>
+                            <h2 className="text-3xl font-bold text-gray-100 font-montserrat leading-tight text-glow-emerald">
+                                Grow Your Wealth
+                            </h2>
+                            <p className="text-sm text-green-300/80 font-medium mt-1">with India's leading platform.</p>
                         </div>
-                        <div className="w-2/5 flex flex-col items-center justify-center">
-                            <GrowwIcon className="w-20 h-20 transition-transform duration-500 group-hover:scale-110 group-hover:rotate-6 animate-pulse-glow-green" />
-                            <p className="text-xs text-gray-400 mt-2">Trusted by 5 Cr+ users</p>
+                        <GrowwIcon className="w-12 h-12 flex-shrink-0" />
+                    </div>
+
+                    <div className="my-4">
+                        <p className="text-gray-400 text-sm max-w-md">
+                            Invest in Stocks, Mutual Funds, IPOs, and more. Groww makes investing simple, accessible, and transparent for millions of Indians.
+                        </p>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4 mb-6">
+                        <div className="bg-black/20 p-4 rounded-xl flex items-center space-x-3">
+                            <UserGroupIcon className="w-8 h-8 text-sky-400" />
+                            <div>
+                                <p className="text-xl font-bold">5 Cr+</p>
+                                <p className="text-xs text-gray-400">Investors</p>
+                            </div>
+                        </div>
+                        <div className="bg-black/20 p-4 rounded-xl flex items-center space-x-3">
+                             <LocalStarIcon className="w-8 h-8 text-amber-400" />
+                            <div>
+                                <p className="text-xl font-bold">4.6 ★</p>
+                                <p className="text-xs text-gray-400">Rating</p>
+                            </div>
                         </div>
                     </div>
-                    
-                    <div className="flex gap-3">
-                        <button onClick={onWhyClick} className="flex-1 py-3 bg-white/10 text-white font-bold rounded-xl backdrop-blur-sm border border-white/20 hover:bg-white/20 transition-colors active:scale-95">Why Choose Groww?</button>
-                        <a href="https://groww.in/" target="_blank" rel="noopener noreferrer" className="flex-1 group/button relative">
-                             <div className="absolute -inset-0.5 bg-gradient-to-r from-green-500 to-teal-500 rounded-xl blur opacity-75 group-hover/button:opacity-100 transition duration-1000 group-hover/button:duration-200 animate-tilt"></div>
-                            <button className="relative w-full py-3 bg-gray-900 text-white font-bold rounded-xl shadow-lg shadow-green-500/20 transform hover:scale-105 active:scale-95 transition-transform">
-                                <span className="bg-clip-text text-transparent bg-gradient-to-r from-green-400 to-teal-300">Open Groww App</span>
+
+                    <div className="flex flex-col sm:flex-row gap-3">
+                        <a href="https://groww.in/" target="_blank" rel="noopener noreferrer" className="flex-1">
+                            <button className="w-full py-3 bg-gradient-to-r from-green-500 to-teal-500 text-white font-bold rounded-xl shadow-lg shadow-green-500/20 transform hover:scale-105 active:scale-95 transition-transform">
+                                Start Investing
                             </button>
                         </a>
+                         <button onClick={onWhyClick} className="flex-1 py-3 bg-white/10 text-white font-bold rounded-xl backdrop-blur-sm border border-white/20 hover:bg-white/20 transition-colors active:scale-95">
+                            Why Choose Groww?
+                         </button>
                     </div>
                 </div>
             </GlassmorphicPanel>
@@ -370,68 +435,86 @@ const GrowwPanel: FC<{ onWhyClick: () => void }> = ({ onWhyClick }) => {
 };
 
 
-const WhyInvestPanel: FC = () => {
-    const slides = [
-        { title: 'Beat Inflation', text: 'Investing makes your money work for you, helping it grow faster than inflation and building long-term wealth.', icon: <TrendingUpIcon /> },
-        { title: 'Power of Compounding', text: 'The best time was yesterday. The next best time is now. Starting early harnesses the power of compounding.', icon: <ClockIcon className="h-8 w-8 text-amber-400" /> },
-        { title: 'Achieve Goals', text: 'Whether it\'s for retirement, a house, or education, investing helps you reach your financial goals faster.', icon: <AIIcon className="h-8 w-8 text-amber-400" /> },
-        { title: 'Build Wealth', text: 'Investing is a marathon, not a sprint. A long-term horizon (5+ years) allows your investments to weather market fluctuations and grow significantly.', icon: <CalendarIcon className="h-8 w-8 text-amber-400" /> },
-        { title: 'Financial Freedom', text: 'Start early, invest regularly, stay diversified, and remain patient. Your future self will thank you.', icon: <TrophyIcon /> },
-    ];
-    const [currentSlide, setCurrentSlide] = useState(0);
+// --- Panels #6 & #7: Investment Tools & Learning Hub ---
+const ToolsAndLearningPanel: FC<{ onNavigate: (view: string, params?: any) => void; }> = ({ onNavigate }) => {
+    const [currentIndex, setCurrentIndex] = useState(0);
     const scrollRef = useRef<HTMLDivElement>(null);
 
-    const handleScroll = () => {
-        if(scrollRef.current) {
-            const newIndex = Math.round(scrollRef.current.scrollLeft / scrollRef.current.offsetWidth);
-            setCurrentSlide(newIndex);
+    const items = [
+        {
+            key: 'tools',
+            icon: <ToolsIcon />,
+            title: 'Investment Tools',
+            description: 'SIP, Compounding, and other powerful calculators to plan your growth.',
+            onClick: () => onNavigate('tools', { category: 'Investing' }),
+            navText: 'Explore Tools'
+        },
+        {
+            key: 'learning',
+            icon: <BookOpenIcon />,
+            title: 'Learning Hub',
+            description: 'Interactive guides and videos to boost your investment knowledge.',
+            onClick: () => onNavigate('learning', { category: 'Investing' }),
+            navText: 'Start Learning'
+        }
+    ];
+
+    const handleScroll = useCallback(() => {
+        if (scrollRef.current) {
+            const scrollLeft = scrollRef.current.scrollLeft;
+            const itemWidth = scrollRef.current.offsetWidth;
+            if (itemWidth > 0) {
+                const newIndex = Math.round(scrollLeft / itemWidth);
+                if (newIndex !== currentIndex) {
+                    setCurrentIndex(newIndex);
+                }
+            }
+        }
+    }, [currentIndex]);
+    
+    const handleDotClick = (index: number) => {
+        const scrollContainer = scrollRef.current;
+        if (scrollContainer) {
+            const scrollLeft = index * scrollContainer.offsetWidth;
+            scrollContainer.scrollTo({ left: scrollLeft, behavior: 'smooth' });
         }
     };
 
     return (
-        <div className="animate-slide-in-bottom" style={{animationDelay:'200ms'}}>
-            <div ref={scrollRef} onScroll={handleScroll} className="flex overflow-x-auto snap-x snap-mandatory no-scrollbar -mx-6 px-4 pb-4">
-                {slides.map((slide, index) => (
-                    <div key={index} className="w-full flex-shrink-0 snap-center px-2">
-                        <GlassmorphicPanel className="h-full flex flex-col items-center text-center space-y-4">
-                            <div className="p-3 bg-black/30 rounded-full">{slide.icon}</div>
-                            <h3 className="text-xl font-bold text-amber-300">{slide.title}</h3>
-                            <p className="text-sm text-gray-300 flex-1">{slide.text}</p>
+        <div className="animate-slide-in-bottom" style={{animationDelay:'500ms'}}>
+            <div
+                ref={scrollRef}
+                onScroll={handleScroll}
+                className="flex overflow-x-auto snap-x snap-mandatory scroll-smooth no-scrollbar -mx-6"
+            >
+                {items.map((item, index) => (
+                    <div key={index} className="w-full flex-shrink-0 snap-center px-6">
+                        <GlassmorphicPanel onClick={item.onClick} className="h-56 !p-6 space-y-3 !rounded-2xl cursor-pointer flex flex-col justify-between">
+                             <div>
+                                <div className="p-3 bg-sky-900/50 rounded-xl w-fit">{item.icon}</div>
+                                <h3 className="text-xl font-bold mt-3">{item.title}</h3>
+                                <p className="text-sm text-gray-400">{item.description}</p>
+                            </div>
+                            <div className="text-sky-400 font-semibold text-sm flex items-center">{item.navText} <ChevronRightIcon className="h-4 w-4 ml-1" /></div>
                         </GlassmorphicPanel>
                     </div>
                 ))}
             </div>
-             <div className="flex justify-center items-center space-x-2 mt-2">
-                {slides.map((_, index) => (
-                    <div key={index} className={`h-2 rounded-full transition-all duration-300 ${currentSlide === index ? 'w-5 bg-white' : 'w-2 bg-gray-600'}`}></div>
+            <div className="flex justify-center items-center space-x-2 mt-4">
+                {items.map((_, index) => (
+                    <button
+                        key={index}
+                        onClick={() => handleDotClick(index)}
+                        aria-label={`Go to slide ${index + 1}`}
+                        className={`h-2.5 rounded-full transition-all duration-300 ease-in-out ${
+                            currentIndex === index ? 'w-6 bg-white' : 'w-2.5 bg-gray-600'
+                        }`}
+                    />
                 ))}
             </div>
         </div>
     );
 };
-
-
-// --- Panels #6 & #7: Investment Tools & Learning Hub ---
-const ToolsAndLearningPanel: FC<{ onNavigate: (view: string, params?: any) => void; }> = ({ onNavigate }) => (
-    <div className="grid md:grid-cols-2 gap-6 animate-slide-in-bottom" style={{animationDelay:'500ms'}}>
-        <GlassmorphicPanel onClick={() => onNavigate('tools', { category: 'Investing' })} className="h-full !p-6 space-y-3 !rounded-2xl cursor-pointer flex flex-col justify-between">
-            <div>
-                <div className="p-3 bg-sky-900/50 rounded-xl w-fit"><ToolsIcon /></div>
-                <h3 className="text-xl font-bold mt-3">Investment Tools</h3>
-                <p className="text-sm text-gray-400">SIP, Compounding, and other powerful calculators to plan your growth.</p>
-            </div>
-            <div className="text-sky-400 font-semibold text-sm flex items-center">Explore Tools <ChevronRightIcon className="h-4 w-4 ml-1" /></div>
-        </GlassmorphicPanel>
-        <GlassmorphicPanel onClick={() => onNavigate('learning', { category: 'Investing' })} className="h-full !p-6 space-y-3 !rounded-2xl cursor-pointer flex flex-col justify-between">
-            <div>
-                <div className="p-3 bg-indigo-900/50 rounded-xl w-fit"><BookOpenIcon /></div>
-                <h3 className="text-xl font-bold mt-3">Learning Hub</h3>
-                <p className="text-sm text-gray-400">Interactive guides and videos to boost your investment knowledge.</p>
-            </div>
-            <div className="text-indigo-400 font-semibold text-sm flex items-center">Start Learning <ChevronRightIcon className="h-4 w-4 ml-1" /></div>
-        </GlassmorphicPanel>
-    </div>
-);
 
 // --- Panel #8: Portfolio Journal ---
 const PortfolioJournalPage: FC<{ onBack: () => void, onEdit: (inv: Investment) => void }> = ({ onBack, onEdit }) => {
@@ -531,6 +614,67 @@ const FaqPanel: FC = () => {
     );
 };
 
+const WhyGrowwModal: FC<{ isVisible: boolean; onClose: () => void; }> = ({ isVisible, onClose }) => {
+    if (!isVisible) return null;
+
+    const benefits = [
+        {
+            icon: <PortfolioTrackingIcon className="w-8 h-8 text-sky-400" />,
+            title: 'All-in-One Platform',
+            description: 'Track all your stocks, mutual funds, and other investments in a single, intuitive dashboard.'
+        },
+        {
+            icon: <GoalInvestingIcon className="w-8 h-8 text-purple-400" />,
+            title: 'Goal-Based Investing',
+            description: 'Set your financial goals and let Groww help you create a plan to achieve them with the right investments.'
+        },
+        {
+            icon: <MarketInsightsIcon className="w-8 h-8 text-green-400" />,
+            title: 'Market Insights & News',
+            description: 'Stay updated with real-time market data, news, and expert analysis to make informed decisions.'
+        },
+        {
+            icon: <SipLumpsumIcon className="w-8 h-8 text-amber-400" />,
+            title: 'Flexible Investing',
+            description: 'Invest your way with options for both SIP (Systematic Investment Plan) and lumpsum investments.'
+        }
+    ];
+
+    return (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-end" onClick={onClose}>
+            <div className="w-full bg-gradient-to-t from-[#10141b] to-[#1e293b] border-t-2 border-green-500/50 rounded-t-3xl max-h-[80vh] flex flex-col animate-slide-up" onClick={e => e.stopPropagation()}>
+                <header className="p-4 flex-shrink-0 text-center relative border-b border-white/10">
+                    <div className="absolute top-3 left-1/2 -translate-x-1/2 w-16 h-1.5 bg-gray-700 rounded-full"></div>
+                    <button onClick={onClose} className="absolute top-3 right-4 p-1 text-gray-500 hover:text-white"><XIcon /></button>
+                    <div className="mt-6 flex justify-center">
+                        <GrowwIcon className="w-12 h-12" />
+                    </div>
+                    <h2 className="text-2xl font-bold text-gray-100 mt-4">Why Invest with Groww?</h2>
+                    <p className="text-sm text-gray-400">Simplicity, transparency, and power in your hands.</p>
+                </header>
+                <div className="flex-1 overflow-y-auto px-6 py-6 space-y-4">
+                    {benefits.map((benefit, index) => (
+                        <div key={index} className="bg-black/30 p-4 rounded-xl flex items-center space-x-4">
+                            <div className="p-3 bg-gray-800/50 rounded-lg">{benefit.icon}</div>
+                            <div>
+                                <h3 className="font-semibold text-gray-200">{benefit.title}</h3>
+                                <p className="text-sm text-gray-400">{benefit.description}</p>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+                <div className="p-4 flex-shrink-0">
+                    <a href="https://groww.in/" target="_blank" rel="noopener noreferrer">
+                        <button className="w-full py-4 bg-gradient-to-r from-green-500 to-teal-500 text-white font-bold rounded-xl shadow-lg shadow-green-500/20">
+                            Get Started on Groww
+                        </button>
+                    </a>
+                </div>
+            </div>
+        </div>
+    );
+};
+
 // --- MAIN SCREEN ---
 const InvestScreen: FC<{ onNavigate: (view: string, params?: any) => void; }> = ({ onNavigate }) => {
     const { investments } = useContext(FinancialContext);
@@ -573,6 +717,7 @@ const InvestScreen: FC<{ onNavigate: (view: string, params?: any) => void; }> = 
                 <InvestmentInsightsPanel />
                 <WhyInvestPanel />
                 <AllocationCharts />
+                <AIChatPanel onNavigate={onNavigate} />
                 <GrowwPanel onWhyClick={() => setShowWhyGrowwModal(true)} />
                 <ToolsAndLearningPanel onNavigate={onNavigate} />
                 <FaqPanel />

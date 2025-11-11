@@ -1015,17 +1015,27 @@ const SavingsOverviewPanel: FC<{ totalSavings: number; totalTarget: number; prog
 const AIChatTeaserPanel: FC<{ onNavigate: (view: string) => void }> = ({ onNavigate }) => (
     <FloatingCard 
       onClick={() => onNavigate('aiChat')} 
-      className="aspect-square !p-5 group cursor-pointer flex flex-col justify-between items-start hover:-translate-y-1 animate-active-glow-purple"
-      style={{ backgroundImage: `radial-gradient(circle at top right, rgba(168, 85, 247, 0.1), transparent 50%)` }}
+      className="!p-5 group cursor-pointer flex flex-col justify-between h-full hover:-translate-y-1 animate-active-glow-purple"
+      style={{ backgroundImage: `radial-gradient(circle at top right, rgba(168, 85, 247, 0.1), transparent 70%)` }}
     >
         <div>
-            <div className="p-3 bg-purple-900/50 rounded-2xl w-fit mb-3"><ChatIcon /></div>
-            <h3 className="font-bold text-gray-200 text-lg">Talk to AI Mentor</h3>
-            <p className="text-sm text-gray-400 mt-1">Get personalized saving strategies, tips, and answers to your questions instantly.</p>
+            <div className="flex items-start space-x-3">
+                <div className="p-3 bg-purple-900/50 rounded-xl w-fit">
+                    <ChatIcon className="h-6 w-6" />
+                </div>
+                <div>
+                    <h3 className="font-bold text-gray-200 text-base">AI Chat</h3>
+                    <p className="text-xs text-gray-400 mt-0.5">Get saving tips.</p>
+                </div>
+            </div>
+            <div className="mt-4 text-xs text-gray-400 space-y-2">
+                <p className="font-semibold text-gray-300">Try asking:</p>
+                <p className="bg-black/20 p-1.5 rounded-md">"How can I save faster?"</p>
+                <p className="bg-black/20 p-1.5 rounded-md">"Explain Fixed Deposits"</p>
+            </div>
         </div>
-        <div className="flex items-center space-x-1 text-sm font-semibold text-purple-400 group-hover:text-purple-300">
-            <span>Ask Now</span>
-            <ChevronRightIcon className="h-4 w-4" />
+        <div className="flex justify-end mt-2">
+            <ChevronRightIcon className="h-5 w-5 text-gray-600 group-hover:text-purple-300 transition-colors" />
         </div>
     </FloatingCard>
 );
@@ -1033,17 +1043,35 @@ const AIChatTeaserPanel: FC<{ onNavigate: (view: string) => void }> = ({ onNavig
 const LearningHubTeaserPanel: FC<{ onNavigate: (view: string, params?: any) => void }> = ({ onNavigate }) => (
     <FloatingCard 
       onClick={() => onNavigate('learning', { category: 'Saving' })} 
-      className="aspect-square !p-5 group cursor-pointer flex flex-col justify-between items-start hover:-translate-y-1 animate-active-glow-blue"
-      style={{ backgroundImage: `radial-gradient(circle at top right, rgba(56, 189, 248, 0.1), transparent 50%)` }}
+      className="!p-5 group cursor-pointer flex flex-col justify-between h-full hover:-translate-y-1 animate-active-glow-blue"
+      style={{ backgroundImage: `radial-gradient(circle at top right, rgba(56, 189, 248, 0.1), transparent 70%)` }}
     >
         <div>
-            <div className="p-3 bg-sky-900/50 rounded-2xl w-fit mb-3"><BookOpenIcon /></div>
-            <h3 className="font-bold text-gray-200 text-lg">Learning Hub</h3>
-            <p className="text-sm text-gray-400 mt-1">Explore bite-sized lessons on saving psychology, automation, and advanced strategies.</p>
+            <div className="flex items-start space-x-3">
+                <div className="p-3 bg-sky-900/50 rounded-xl w-fit">
+                    <BookOpenIcon className="h-6 w-6" />
+                </div>
+                <div>
+                    <h3 className="font-bold text-gray-200 text-base">Learning Hub</h3>
+                    <p className="text-xs text-gray-400 mt-0.5">Explore lessons & tools.</p>
+                </div>
+            </div>
+            <div className="mt-4 text-xs text-gray-400 space-y-3">
+                <div>
+                    <p className="font-semibold text-gray-300">Popular Topics:</p>
+                    <ul className="list-disc list-inside pl-2 space-y-1 mt-1">
+                        <li>Emergency Fund Basics</li>
+                        <li>High-Yield Savings</li>
+                    </ul>
+                </div>
+                <div>
+                    <p className="font-semibold text-gray-300">Related Calculators:</p>
+                    <p className="text-gray-500 mt-1">FD, RD, Inflation Impact...</p>
+                </div>
+            </div>
         </div>
-        <div className="flex items-center space-x-1 text-sm font-semibold text-sky-400 group-hover:text-sky-300">
-            <span>Start Learning</span>
-            <ChevronRightIcon className="h-4 w-4" />
+        <div className="flex justify-end mt-2">
+            <ChevronRightIcon className="h-5 w-5 text-gray-600 group-hover:text-sky-300 transition-colors" />
         </div>
     </FloatingCard>
 );
@@ -1192,16 +1220,16 @@ const SaveScreen: React.FC<{ onNavigate: (view: string, params?: any) => void; }
                 
                 <SavingInsightsPanel />
                 <SavingsAllocationChartsPanel />
-
-                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <AIChatTeaserPanel onNavigate={onNavigate} />
-                    <LearningHubTeaserPanel onNavigate={onNavigate} />
-                </div>
                 
                 <InvestSavingsSmartlyPanel 
                     onOpenDeepDive={() => setIsDeepDiveOpen(true)} 
                     onOpenWhyStableMoney={() => setIsWhyStableMoneyModalOpen(true)}
                 />
+
+                <div className="grid grid-cols-2 gap-4">
+                   <AIChatTeaserPanel onNavigate={onNavigate} />
+                   <LearningHubTeaserPanel onNavigate={onNavigate} />
+                </div>
                 
                 <FaqSection />
             </div>

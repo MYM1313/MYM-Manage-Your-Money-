@@ -153,8 +153,8 @@ const CalculatorIcon: React.FC<{className?: string}> = ({className}) => (
         <path strokeLinecap="round" strokeLinejoin="round" d="M9 7h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h10a2 2 0 012 2v10a2 2 0 01-2 2H9z" />
     </svg>
 );
-const SnorkelIcon: FC = () => (
-    <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 text-orange-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5">
+const SnorkelIcon: FC<{ className?: string }> = ({ className }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" className={className || "h-10 w-10 text-orange-300"} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5">
         <path strokeLinecap="round" strokeLinejoin="round" d="M4 19V6.5a3.5 3.5 0 013.5-3.5h0a3.5 3.5 0 013.5 3.5V19m-7 0a2 2 0 002 2h3a2 2 0 002-2m-7 0a2 2 0 012-2h3a2 2 0 012 2" />
         <path strokeLinecap="round" strokeLinejoin="round" d="M15 9a3 3 0 013-3h1a3 3 0 013 3v2a3 3 0 01-3 3h-1a3 3 0 01-3-3V9z" />
     </svg>
@@ -169,8 +169,8 @@ const AIChoiceIcon: FC = () => (
         </div>
     </div>
 );
-const AvalancheIcon: FC = () => (
-    <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 text-sky-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5">
+const AvalancheIcon: FC<{ className?: string }> = ({ className }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" className={className || "h-10 w-10 text-sky-300"} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5">
         <path strokeLinecap="round" strokeLinejoin="round" d="M11.25 4.5l7.5 7.5-7.5 7.5m-6-15l7.5 7.5-7.5 7.5" />
     </svg>
 );
@@ -396,19 +396,17 @@ const AIRecommendationModal: React.FC<{ onClose: () => void; onSelectStrategy: (
 
 const StrategySelection: React.FC<{ onSelect: (strategy: Strategy) => void; onOpenAiModal: () => void; }> = ({ onSelect, onOpenAiModal }) => {
     
-    const StrategyCard: React.FC<{ title: string; desc: string; icon: React.ReactNode; onClick: () => void; isRecommended?: boolean; glowClass: string; className?: string; }> = ({ title, desc, icon, onClick, isRecommended, glowClass, className = '' }) => (
+    const StrategyCard: React.FC<{ title: string; desc: string; icon: React.ReactNode; onClick: () => void; isRecommended?: boolean; glowClass: string; }> = ({ title, desc, icon, onClick, isRecommended, glowClass }) => (
         <div
             onClick={onClick}
             className={`
-                group premium-glass !p-6 !rounded-3xl cursor-pointer 
-                flex flex-col items-start space-y-3 relative overflow-hidden
+                group premium-glass !p-8 !rounded-3xl cursor-pointer 
+                flex flex-col items-start space-y-4 relative overflow-hidden
                 border-2 border-transparent transition-all duration-300 
                 hover:border-sky-400/50 hover:scale-[1.02] hover:shadow-2xl
                 transform hover:-translate-y-2
                 ${isRecommended ? 'border-purple-500/50' : ''}
-                ${className}
             `}
-            style={{ transform: 'perspective(1200px) rotateY(-3deg)' }}
         >
             <div className="absolute inset-0 animate-light-sweep opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
             {isRecommended && <div className="absolute top-4 right-4 bg-purple-900/70 text-purple-300 text-xs font-bold px-3 py-1 rounded-full flex items-center gap-1.5"><AIIcon className="w-4 h-4" /> AI Pick</div>}
@@ -416,56 +414,57 @@ const StrategySelection: React.FC<{ onSelect: (strategy: Strategy) => void; onOp
             <div className={`p-4 rounded-2xl bg-black/30 ${glowClass}`}>{icon}</div>
 
             <div>
-                <h3 className="text-2xl font-bold text-gray-100">{title}</h3>
-                <p className="text-gray-400 mt-1">{desc}</p>
+                <h3 className="text-3xl font-bold text-gray-100">{title}</h3>
+                <p className="text-gray-400 mt-1 text-base">{desc}</p>
             </div>
+        </div>
+    );
+
+    const AiChoiceButton: React.FC<{ onClick: () => void }> = ({ onClick }) => (
+        <div
+            onClick={onClick}
+            className="
+                group premium-glass !p-5 !rounded-2xl cursor-pointer 
+                flex items-center justify-between relative overflow-hidden
+                border-2 border-purple-500/50
+                transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl
+                transform hover:-translate-y-1
+                bg-gradient-to-r from-purple-900/30 to-indigo-900/30
+            "
+        >
+            <div className="flex items-center space-x-4">
+                <div className="p-3 bg-black/40 rounded-full" style={{ animation: 'orb-pulse 4s infinite ease-in-out' }}>
+                    <AIIcon className="h-6 w-6 text-purple-300" />
+                </div>
+                <h3 className="text-xl font-bold text-gray-100">Let AI Find the Best One</h3>
+            </div>
+            <ChevronRightIcon className="h-6 w-6 text-gray-500 group-hover:text-purple-300 transition-transform group-hover:translate-x-1" />
         </div>
     );
 
     return (
         <div className="space-y-8 p-2">
             <div className="text-center space-y-2">
-                <h2 className="text-4xl font-bold cinematic-title">Select Your Debt Freedom Strategy</h2>
-                <p className="text-gray-400">Choose the path that aligns with your financial style.</p>
+                <h2 className="text-4xl font-bold cinematic-title">Choose Strategy for Debt</h2>
+                <p className="text-gray-400">Select a method to start your debt-free journey.</p>
             </div>
             <div className="space-y-6">
                 <StrategyCard 
-                    title="Avalanche" 
+                    title="Avalanche Strategy" 
                     desc="Focus on highest-interest debt first. Saves the most money over time."
                     onClick={() => onSelect('avalanche')} 
                     isRecommended 
-                    icon={<AvalancheIcon />}
+                    icon={<AvalancheIcon className="h-12 w-12 text-sky-300" />}
                     glowClass="shadow-[0_0_20px_rgba(56,189,248,0.3)]"
                 />
                 <StrategyCard 
-                    title="Snowball" 
+                    title="Snowball Strategy" 
                     desc="Focus on smallest debts first to build momentum with quick wins."
                     onClick={() => onSelect('snowball')} 
-                    icon={<SnorkelIcon />}
+                    icon={<SnorkelIcon className="h-12 w-12 text-orange-300" />}
                     glowClass="shadow-[0_0_20px_rgba(251,146,60,0.3)]"
-                    className="animate-light-sweep"
                 />
-            </div>
-            <div
-                onClick={onOpenAiModal}
-                className="
-                    group premium-glass !p-6 !rounded-3xl cursor-pointer 
-                    flex items-center justify-between relative overflow-hidden
-                    border-2 border-purple-500/50
-                    transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl
-                    transform hover:-translate-y-2
-                "
-                style={{ transform: 'perspective(1200px) rotateY(-3deg)' }}
-            >
-                <div>
-                     <h3 className="text-2xl font-bold text-gray-100">Let AI Choose</h3>
-                     <p className="text-gray-400 mt-1">Get the optimal strategy based on your unique debt profile.</p>
-                </div>
-                 <div className="w-20 h-20 flex items-center justify-center">
-                    <div className="relative w-16 h-16" style={{ animation: 'orb-pulse 4s infinite ease-in-out' }}>
-                        <AIChoiceIcon />
-                    </div>
-                </div>
+                <AiChoiceButton onClick={onOpenAiModal} />
             </div>
         </div>
     );
@@ -1312,9 +1311,7 @@ const AIChatPanel: FC<{ onNavigate: (view: string) => void }> = ({ onNavigate })
 const ManageDebtScreen: React.FC<{ onBack: () => void; onNavigate: (view: string, params?: any) => void; }> = ({ onBack, onNavigate }) => {
     const { addTransaction, removeTransaction, debtPlan, setDebtPlan } = useContext(FinancialContext);
     const [phase, setPhase] = useState<Phase>('input');
-    const [debts, setDebts] = useState<Omit<Debt, 'id'>[]>([
-        { name: 'Car Loan', amount: 250000, apr: 7.5, minPayment: 15000, paymentDate: 10 }
-    ]);
+    const [debts, setDebts] = useState<Omit<Debt, 'id'>[]>([]);
     const [extraPayment, setExtraPayment] = useState(0);
     const [isAiModalOpen, setIsAiModalOpen] = useState(false);
     const [isStartPlanModalOpen, setIsStartPlanModalOpen] = useState(false);
@@ -1376,7 +1373,7 @@ const ManageDebtScreen: React.FC<{ onBack: () => void; onNavigate: (view: string
 
     const handleReset = () => {
         setDebtPlan(null);
-        setDebts([{ name: 'Car Loan', amount: 250000, apr: 7.5, minPayment: 15000, paymentDate: 10 }]);
+        setDebts([]);
     };
     
     const handleSaveAutomation = (date: string) => {

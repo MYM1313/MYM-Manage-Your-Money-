@@ -1,6 +1,6 @@
 import React from 'react';
 
-export type Tab = 'Home' | 'Expense' | 'Save' | 'Invest' | 'Profile';
+export type Tab = 'Home' | 'Expense' | 'Save' | 'Invest' | 'Profile' | 'aiChat';
 
 export interface ChatMessage {
   id: string;
@@ -57,7 +57,7 @@ export interface InvestmentGoal {
   createdAt: string; // ISO 8601 format
 }
 
-export type InvestmentCategory = 'Stocks' | 'ETFs' | 'Bonds' | 'Gold' | 'Crypto' | 'Global' | 'Mutual Funds' | 'Other';
+export type InvestmentCategory = 'Stocks' | 'ETFs' | 'Mutual Funds' | 'Real Estate' | 'Crypto' | 'Other' | 'Bonds' | 'Gold' | 'Global';
 export type InvestmentRiskProfile = 'Low' | 'Medium' | 'High';
 
 export interface Investment {
@@ -76,101 +76,50 @@ export interface Investment {
     startDate?: string;
 }
 
-// --- NEW ONBOARDING TYPES ---
-export type SavingGoalType = 'Emergency' | 'Retirement' | 'Education' | 'Wealth Growth';
-export type DebtType = 'Credit Card' | 'Personal Loan' | 'Home Loan' | 'Car Loan' | 'Education Loan' | 'Other';
-export type AITopic = 'Investing' | 'Saving' | 'Budgeting' | 'Debt' | 'Insurance' | 'Other';
-export type AppFeature = 'Expense Tracker' | 'Savings' | 'Investments' | 'Debt Manager' | 'Insurance' | 'AI Chat';
-export type InsuranceType = 'Term' | 'Life' | 'Health' | 'Critical Illness' | 'Other';
-
+// --- ONBOARDING TYPES ---
+export type DebtType = 'Credit Card' | 'Personal Loan' | 'Home Loan' | 'Education Loan' | 'Other';
+export type InsuranceType = 'Life' | 'Health' | 'Term' | 'Vehicle' | 'Other';
 
 export interface OnboardingData {
     name: string;
     age: number;
     monthlyIncome: number;
     monthlyExpense: number;
-    hasEmergencyFund: 'Yes' | 'No' | null;
-    emergencyFundAmount: number;
-    emergencyFundGrowthRate: number;
-    invests: 'Yes' | 'No' | null;
-    investmentAssets: InvestmentCategory[];
-    monthlyInvestment: number;
-    investmentPlatform: 'Groww' | 'Zerodha' | 'Other' | null;
-    riskLevel: 'Low' | 'Medium' | 'High' | null;
-    totalInvestmentAmount: number;
+    dependents?: number;
+
+    // Savings
     savesRegularly: 'Yes' | 'No' | null;
-    monthlySavings: number;
-    savingGoals: SavingGoalType[];
-    expectedReturn: number | 'DontKnow' | null;
+    monthlySavings?: number;
+    wantsToStartSaving?: 'Yes' | 'Not now';
+    
+    // Investments
+    invests: 'Yes' | 'No' | null;
+    investmentLocation?: InvestmentCategory;
+    // FIX: Add 'investmentGoal' to fix type error.
+    investmentGoal?: string;
+    wantsToStartInvesting?: 'Yes' | 'Not ready yet';
+    totalInvestmentAmount?: number;
+
+    // Insurance
+    hasInsurance: 'Yes' | 'No' | null;
+    insurancePolicies: {
+        type: InsuranceType;
+        coverage: number;
+    }[];
+    
+    // Debts
     hasDebts: 'Yes' | 'No' | null;
     debts: {
         type: DebtType;
         outstandingAmount: number;
         interestRate: number;
-        emi: number;
-        tenure: number; // in months
-    }[];
-    hasInsurance: 'Yes' | 'No' | null;
-    insurancePolicies: {
-        type: InsuranceType;
-        coverage: number;
-        premium: number;
-        renewalDate: string;
+        affordablePayment: number;
     }[];
 }
 
-
-// FIX: Add missing onboarding types
-export interface InvestmentOnboardingAsset {
-    type: InvestmentCategory;
-    amount: number;
-    reason: string;
-    confidence: number;
-}
-
-export interface InvestmentOnboardingData {
-    hasInvestedBefore: boolean | null;
-    assets: InvestmentOnboardingAsset[];
-    riskAppetite: InvestmentRiskProfile | null;
-    investmentConfidence: number | null;
-    investmentFrequency: 'One-time' | 'Monthly' | 'Periodic' | null;
-}
-
-export interface InsurancePolicyOnboarding {
-    type: 'Health' | 'Life' | 'Term' | 'Other';
-    provider: string;
-    premium: number;
-    coverage: number;
-    renewalDate: string;
-    dependentsCovered: number;
-}
-
-export interface InsuranceOnboardingData {
-    hasExistingInsurance: boolean | null;
-    existingPolicies: InsurancePolicyOnboarding[];
-    fullName: string;
-    age: number | null;
-    maritalStatus: 'Single' | 'Married' | null;
-    employmentType: 'Salaried' | 'Self-Employed' | 'Other' | null;
-    lifestyleSmoker: 'Non-Smoker' | 'Smoker' | null;
-    income: number | null;
-    monthlyExpenses: number | null;
-    insuranceBudget: 'Low' | 'Medium' | 'High' | null;
-    riskAppetite: 'Low' | 'Medium' | 'High' | null;
-    hasMajorHealthConditions: boolean | null;
-    majorHealthConditions?: string;
-    preferredCoverageType: 'Basic' | 'Comprehensive' | null;
-    willingnessForCheckup: boolean | null;
-    mainGoal: 'Protection' | 'Investment-linked' | 'Both' | null;
-    desiredCoverage: number | null;
-    priorityOfProtection: 'Life' | 'Health' | 'Term' | null;
-    claimedInsurance: boolean | null;
-    claimedInsuranceDetails?: string;
-    preferredPolicyDuration: '1-5 yrs' | '5-10 yrs' | '10+ yrs' | null;
-    tipsFrequency: 'Daily' | 'Weekly' | 'Monthly' | null;
-    guidanceStyle: 'Text' | 'Charts' | 'Both' | null;
-    preferredRecommendationSource: 'Ditto' | 'AI only' | 'Both' | null;
-    willingnessToAdjust: boolean | null;
+export interface OnboardingResult {
+    user: User;
+    data: OnboardingData;
 }
 
 
@@ -196,10 +145,11 @@ export interface Notification {
 export interface User {
     name: string;
     email: string;
-    phone: string;
+    phone?: string;
     profilePictureUrl?: string;
     website?: string;
     location?: string;
+    age?: number;
 }
 
 export type LinkedAccountType = 'Bank' | 'Wallet' | 'Investment';
@@ -287,11 +237,6 @@ export interface FinancialContextType {
     addInvestmentGoal: (goal: Omit<InvestmentGoal, 'id' | 'currentAmount' | 'status' | 'createdAt'>) => void;
     updateInvestmentGoal: (goalId: string, updates: Partial<Omit<InvestmentGoal, 'id'>>) => void;
     deleteInvestmentGoal: (goalId: string) => void;
-    isInvestingOnboarded: boolean;
-    // FIX: Replace 'any' with the specific InvestmentOnboardingData type.
-    investmentOnboardingData: InvestmentOnboardingData;
-    setInvestmentOnboardingData: React.Dispatch<React.SetStateAction<InvestmentOnboardingData>>;
-    completeInvestingOnboarding: (investments: Investment[]) => void;
     // Notification System
     notifications: Notification[];
     addNotification: (notification: Omit<Notification, 'id' | 'timestamp' | 'isRead'>) => void;
@@ -322,7 +267,7 @@ export interface FinancialContextType {
 
 export interface InsurancePolicy {
   id: string;
-  type: 'Term Life' | 'Health' | 'Car' | 'Other';
+  type: 'Term Life' | 'Health' | 'Car' | 'Other' | 'Life' | 'Term' | 'Vehicle';
   provider: string; // Name of policy/provider
   coverage: number; // Sum assured
   coverageYears?: number; // Term of the policy in years

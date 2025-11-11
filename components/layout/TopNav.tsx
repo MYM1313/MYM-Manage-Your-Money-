@@ -5,43 +5,37 @@ import IconWrapper from '../shared/IconWrapper';
 import { Tab } from '../../types';
 import { FinancialContext } from '../../App';
 
-interface TopNavProps {
-  setActiveTab: (tab: Tab | string) => void;
-}
-
 const Logo: React.FC = () => (
-    <svg width="42" height="42" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <svg width="42" height="42" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
         <defs>
-            <linearGradient id="goldArrowGradient" x1="0" y1="1" x2="1" y2="0">
-                <stop offset="0%" stopColor="#FBBF24" />
-                <stop offset="100%" stopColor="#FDE047" />
+            <linearGradient id="barFaceGradient" x1="0.5" y1="0" x2="0.5" y2="1">
+                <stop offset="0%" stop-color="#5B8DEA"/>
+                <stop offset="100%" stop-color="#3A6AC1"/>
             </linearGradient>
-            <linearGradient id="barGradient" x1="0.5" y1="0" x2="0.5" y2="1">
-                <stop offset="0%" stopColor="#38BDF8" />
-                <stop offset="100%" stopColor="#0E7490" />
+            <linearGradient id="barTopGradient" x1="0.5" y1="0" x2="0.5" y2="1">
+                <stop offset="0%" stop-color="#7CA3EE"/>
+                <stop offset="100%" stop-color="#5B8DEA"/>
             </linearGradient>
-            <filter id="goldGlow" x="-0.5" y="-0.5" width="2" height="2">
-                <feGaussianBlur in="SourceAlpha" stdDeviation="2.5" result="blur"/>
-                <feFlood floodColor="#FBBF24" result="floodColor"/>
-                <feComponentTransfer in="blur" result="glowMask">
-                    <feFuncA type="linear" slope="0.8"/>
-                </feComponentTransfer>
-                <feComposite in="floodColor" in2="glowMask" operator="in" result="softGlow_colored"/>
-                <feMerge>
-                    <feMergeNode in="softGlow_colored"/>
-                    <feMergeNode in="SourceGraphic"/>
-                </feMerge>
+            <filter id="starGlow">
+                <feGaussianBlur in="SourceGraphic" stdDeviation="1.5"/>
             </filter>
         </defs>
-        
-        {/* Slanted Bars */}
-        <path d="M 15 95 L 35 95 L 35 55 L 15 65 Z" fill="url(#barGradient)" />
-        <path d="M 40 95 L 60 95 L 60 35 L 40 45 Z" fill="url(#barGradient)" />
-        <path d="M 65 95 L 85 95 L 85 15 L 65 25 Z" fill="url(#barGradient)" />
-
-        {/* Arrow */}
-        <g filter="url(#goldGlow)">
-            <path d="M5 88 L65 28 L60 33 L83 10 L88 15 L68 35 L5 88Z" fill="url(#goldArrowGradient)" />
+        <circle cx="50" cy="50" r="47" fill="#0B142B"/>
+        <g transform="translate(0, 5)">
+            <rect x="22" y="40" width="14" height="45" fill="url(#barFaceGradient)"/>
+            <path d="M22 40 L25 37 L39 37 L36 40 Z" fill="url(#barTopGradient)" />
+            <rect x="40" y="53" width="14" height="32" fill="url(#barFaceGradient)"/>
+            <path d="M40 53 L43 50 L57 50 L54 53 Z" fill="url(#barTopGradient)" />
+            <rect x="58" y="35" width="14" height="50" fill="url(#barFaceGradient)"/>
+            <path d="M58 35 L61 32 L75 32 L72 35 Z" fill="url(#barTopGradient)" />
+            <rect x="76" y="25" width="14" height="60" fill="url(#barFaceGradient)"/>
+            <path d="M76 25 L79 22 L93 22 L90 25 Z" fill="url(#barTopGradient)" />
+        </g>
+        <g fill="white" filter="url(#starGlow)">
+            <path transform="translate(30 25) scale(0.5)" d="M10 0 L12 8 L20 10 L12 12 L10 20 L8 12 L0 10 L8 8 Z" />
+            <path transform="translate(48 18) scale(0.65)" d="M10 0 L12 8 L20 10 L12 12 L10 20 L8 12 L0 10 L8 8 Z" />
+            <path transform="translate(68 22) scale(0.6)" d="M10 0 L12 8 L20 10 L12 12 L10 20 L8 12 L0 10 L8 8 Z" />
+            <path transform="translate(82 17) scale(0.4)" d="M10 0 L12 8 L20 10 L12 12 L10 20 L8 12 L0 10 L8 8 Z" />
         </g>
     </svg>
 );
@@ -62,6 +56,10 @@ const NotificationBell: React.FC = () => {
     );
 };
 
+// FIX: Define the missing TopNavProps interface to resolve the TypeScript error.
+interface TopNavProps {
+  setActiveTab: (tab: Tab | string) => void;
+}
 
 const TopNav: React.FC<TopNavProps> = ({ setActiveTab }) => {
   return (
