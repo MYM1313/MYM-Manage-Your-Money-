@@ -1,7 +1,7 @@
 // FIX: Removed stray character 'D' from import statement.
 import React, { useState, useMemo, createContext, FC, ReactNode, useEffect, useRef, useContext, useCallback } from 'react';
 // FIX: Import InvestmentOnboardingData to fix typing errors.
-import { Tab, Transaction, DetailedSavingsGoal, Investment, InsurancePolicy, Debt, SuperCategory, TransactionType, DebtPlan, FinancialContextType, InvestmentGoal, InvestmentCategory, Notification, AppSettings, User, LinkedAccount, LoginActivity, Asset, Liability, Strategy, RoadmapItem, DebtPaymentDetail, OnboardingData, OnboardingResult } from './types';
+import { Tab, Transaction, DetailedSavingsGoal, Investment, InsurancePolicy, Debt, SuperCategory, TransactionType, DebtPlan, FinancialContextType, InvestmentGoal, InvestmentCategory, Notification, AppSettings, User, LinkedAccount, LoginActivity, Asset, Liability, Strategy, RoadmapItem, DebtPaymentDetail, OnboardingData } from './types';
 import TopNav from './components/layout/TopNav';
 import BottomNav from './components/layout/BottomNav';
 import HomeScreen from './screens/HomeScreen';
@@ -26,7 +26,7 @@ import PlaceholderScreen from './screens/settings/PlaceholderScreen';
 import EditProfileScreen from './screens/settings/EditProfileScreen';
 import LinkedAccountsScreen from './screens/settings/LinkedAccountsScreen';
 import SecurityScreen from './screens/settings/SecurityScreen';
-import SimpleOnboardingScreen from './screens/SimpleOnboardingScreen';
+import SimpleOnboardingScreen, { OnboardingResult } from './screens/SimpleOnboardingScreen';
 
 
 // --- FINANCIAL CONTEXT ---

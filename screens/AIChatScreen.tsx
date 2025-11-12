@@ -168,38 +168,23 @@ const AIChatScreen: React.FC<{ onBack: () => void }> = ({ onBack }) => {
         setMessages(prev => [...prev, userMessage]);
         setInput('');
         setIsTyping(true);
-
-        const searchKeywords = ['what is', 'who is', 'current', 'price', 'latest', 'news', 'weather', 'define', 'stock', 'match', 'won', 'who won', 'what was'];
-        const isSearchQuery = searchKeywords.some(keyword => prompt.toLowerCase().includes(keyword));
-        if (isSearchQuery) {
-            setIsSearching(true);
-        }
+        setIsSearching(false); // No real searching will occur
 
         try {
-            // Keep hardcoded component demos for specific financial terms
-            if (prompt.toLowerCase().includes('sip')) {
-                await new Promise(res => setTimeout(res, 2000)); // simulate thinking
-                const modelMessage: ChatMessage = { id: (Date.now() + 1).toString(), role: 'model', content: <SIPAnalysis /> };
-                setMessages(prev => [...prev, modelMessage]);
-            } else if (prompt.toLowerCase().includes('portfolio')) {
-                 await new Promise(res => setTimeout(res, 2000)); // simulate thinking
-                const modelMessage: ChatMessage = { id: (Date.now() + 1).toString(), role: 'model', content: "Analyzing your portfolio... It looks well-diversified, but your exposure to the tech sector is a bit high at 35%. Consider rebalancing by adding some defensive stocks or ETFs." };
-                setMessages(prev => [...prev, modelMessage]);
-            } else {
-                // Call real API for general queries
-                const { text: responseText, sources } = await getChatResponse(prompt);
-                const modelMessage: ChatMessage = { 
-                    id: (Date.now() + 1).toString(), 
-                    role: 'model', 
-                    content: (
-                        <>
-                            {responseText}
-                            {sources && sources.length > 0 && <SourcesComponent sources={sources} />}
-                        </>
-                    )
-                };
-                setMessages(prev => [...prev, modelMessage]);
-            }
+            // All queries will now go through the mocked service
+            const { text: responseText, sources } = await getChatResponse(prompt);
+            const modelMessage: ChatMessage = {
+                id: (Date.now() + 1).toString(),
+                role: 'model',
+                content: (
+                    <>
+                        {responseText}
+                        {sources && sources.length > 0 && <SourcesComponent sources={sources} />}
+                    </>
+                )
+            };
+            setMessages(prev => [...prev, modelMessage]);
+
         } catch (error) {
             console.error("Failed to get AI response:", error);
             const errorMessage: ChatMessage = { id: (Date.now() + 1).toString(), role: 'model', content: "I'm having a bit of trouble connecting right now. Please try again in a moment." };
@@ -208,7 +193,7 @@ const AIChatScreen: React.FC<{ onBack: () => void }> = ({ onBack }) => {
             setIsTyping(false);
             setIsSearching(false);
         }
-    }, [isTyping, input]);
+    }, [isTyping]);
 
     const suggestedPrompts = ["Explain what a SIP is", "What is the current price of gold?", "Who won the last cricket match?"];
     

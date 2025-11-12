@@ -2,24 +2,26 @@ import React, { useState, FC } from 'react';
 import OnboardingQuestion from '../components/onboarding/OnboardingQuestion';
 import OnboardingNavigation from '../components/onboarding/OnboardingNavigation';
 import PremiumInput from '../components/onboarding/PremiumInput';
-import { User, OnboardingData, InvestmentCategory, DebtType, OnboardingResult } from '../types';
+import { User, OnboardingData, InvestmentCategory, DebtType } from '../types';
 import { ResponsiveContainer, LineChart, Line, BarChart, Bar, PieChart, Pie, Cell } from 'recharts';
+
+export interface OnboardingResult {
+    user: User;
+    data: OnboardingData;
+}
 
 interface SimpleOnboardingScreenProps {
     onComplete: (result: OnboardingResult) => void;
 }
 
 // --- LOCAL REUSABLE COMPONENTS ---
-const PremiumToggle: FC<{ options: (string | null)[]; value: string | null; onSelect: (val: string | null) => void; label?: string; }> = ({ options, value, onSelect, label }) => (
-    <div>
-        {label && <p className="text-center mt-4 mb-2">{label}</p>}
-        <div className="flex gap-4">
-            {options.map(opt => (
-                <button key={opt} onClick={() => onSelect(opt)} className={`flex-1 p-4 rounded-xl text-lg transition-all ${value === opt ? 'bg-sky-500 text-white shadow-lg' : 'bg-white/10'}`}>
-                    {opt}
-                </button>
-            ))}
-        </div>
+const PremiumToggle: FC<{ options: (string | null)[]; value: string | null; onSelect: (val: string | null) => void }> = ({ options, value, onSelect }) => (
+    <div className="flex gap-4">
+        {options.map(opt => (
+            <button key={opt} onClick={() => onSelect(opt)} className={`flex-1 p-4 rounded-xl text-lg transition-all ${value === opt ? 'bg-sky-500 text-white shadow-lg' : 'bg-white/10'}`}>
+                {opt}
+            </button>
+        ))}
     </div>
 );
 

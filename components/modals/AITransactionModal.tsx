@@ -51,7 +51,7 @@ const AITransactionModal: FC<AITransactionModalProps> = ({ isVisible, onClose })
                 setError("The AI couldn't find any transactions. Please try rephrasing.");
             }
         } catch (e) {
-            setError("Sorry, something went wrong. The AI couldn't process your request.");
+            setError("AI transaction parsing is temporarily disabled. Please add transactions manually.");
         } finally {
             setIsLoading(false);
         }
@@ -130,15 +130,15 @@ const AITransactionModal: FC<AITransactionModalProps> = ({ isVisible, onClose })
                 
                 <div className="p-6 pt-4 flex-shrink-0">
                     {step === 'input' && (
-                        <button onClick={handleAnalyze} disabled={isLoading} className="w-full py-3 bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-bold rounded-xl shadow-lg shadow-purple-500/20 transform hover:scale-105 active:scale-100 transition-transform disabled:bg-gray-600 disabled:scale-100 flex items-center justify-center">
-                            {isLoading ? <div className="h-5 w-5 border-2 border-white/50 border-t-white rounded-full animate-spin"></div> : 'Analyze Transactions'}
+                        <button onClick={handleAnalyze} disabled={isLoading} className="w-full py-3 bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-bold rounded-xl shadow-lg shadow-purple-500/20 transform hover:scale-105 active:scale-100 transition-transform disabled:bg-gray-600 disabled:cursor-not-allowed">
+                            {isLoading ? 'Analyzing...' : 'Analyze Text'}
                         </button>
                     )}
                     {step === 'confirm' && (
                         <div className="flex gap-4">
-                            <button onClick={handleReset} className="flex-1 py-3 bg-gray-700/50 text-gray-300 font-bold rounded-xl hover:bg-gray-600/50 transition-colors">Back</button>
+                            <button onClick={handleReset} className="flex-1 py-3 bg-gray-700/50 text-gray-300 font-semibold rounded-xl hover:bg-gray-600/50">Back</button>
                             <button onClick={handleConfirmAndAdd} className="flex-1 py-3 bg-gradient-to-r from-green-500 to-emerald-500 text-white font-bold rounded-xl shadow-lg shadow-green-500/20">
-                                Add {parsedTransactions.length} Transactions
+                                Confirm & Add
                             </button>
                         </div>
                     )}

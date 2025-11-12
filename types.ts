@@ -57,6 +57,7 @@ export interface InvestmentGoal {
   createdAt: string; // ISO 8601 format
 }
 
+// FIX: Added 'Bonds', 'Gold', and 'Global' to the InvestmentCategory type to match usage in InvestScreen.tsx and other components.
 export type InvestmentCategory = 'Stocks' | 'ETFs' | 'Mutual Funds' | 'Real Estate' | 'Crypto' | 'Other' | 'Bonds' | 'Gold' | 'Global';
 export type InvestmentRiskProfile = 'Low' | 'Medium' | 'High';
 
@@ -76,8 +77,9 @@ export interface Investment {
     startDate?: string;
 }
 
-// --- ONBOARDING TYPES ---
+// --- NEW ONBOARDING TYPES ---
 export type DebtType = 'Credit Card' | 'Personal Loan' | 'Home Loan' | 'Education Loan' | 'Other';
+// FIX: Exported InsuranceType to resolve import error in the (unused) OnboardingScreen.tsx.
 export type InsuranceType = 'Life' | 'Health' | 'Term' | 'Vehicle' | 'Other';
 
 export interface OnboardingData {
@@ -90,15 +92,15 @@ export interface OnboardingData {
     // Savings
     savesRegularly: 'Yes' | 'No' | null;
     monthlySavings?: number;
+    savingsLocation?: 'Bank' | 'FD' | 'Mutual Fund' | 'Cash' | 'Other';
     wantsToStartSaving?: 'Yes' | 'Not now';
     
     // Investments
     invests: 'Yes' | 'No' | null;
     investmentLocation?: InvestmentCategory;
-    // FIX: Add 'investmentGoal' to fix type error.
-    investmentGoal?: string;
+    investmentGoal?: 'Wealth Growth' | 'Income' | 'Retirement' | 'Short-term Gain';
     wantsToStartInvesting?: 'Yes' | 'Not ready yet';
-    totalInvestmentAmount?: number;
+    investmentStartAmount?: number;
 
     // Insurance
     hasInsurance: 'Yes' | 'No' | null;
@@ -115,11 +117,73 @@ export interface OnboardingData {
         interestRate: number;
         affordablePayment: number;
     }[];
+
+    // FIX: Added optional fields to support the old OnboardingScreen.tsx and prevent type errors,
+    // while ensuring compatibility with the new SimpleOnboardingScreen.tsx.
+    hasEmergencyFund?: 'Yes' | 'No' | null;
+    emergencyFundAmount?: number;
+    emergencyFundGrowthRate?: number;
+    investmentAssets?: InvestmentCategory[];
+    totalInvestmentAmount?: number;
+    monthlyInvestment?: number;
+    investmentPlatform?: string | null;
+    riskLevel?: InvestmentRiskProfile | null;
+    savingGoals?: any[];
+    expectedReturn?: number | 'DontKnow' | null;
 }
 
-export interface OnboardingResult {
-    user: User;
-    data: OnboardingData;
+
+// FIX: Add missing onboarding types
+export interface InvestmentOnboardingAsset {
+    type: InvestmentCategory;
+    amount: number;
+    reason: string;
+    confidence: number;
+}
+
+export interface InvestmentOnboardingData {
+    hasInvestedBefore: boolean | null;
+    assets: InvestmentOnboardingAsset[];
+    riskAppetite: InvestmentRiskProfile | null;
+    investmentConfidence: number | null;
+    investmentFrequency: 'One-time' | 'Monthly' | 'Periodic' | null;
+}
+
+export interface InsurancePolicyOnboarding {
+    type: 'Health' | 'Life' | 'Term' | 'Other';
+    provider: string;
+    premium: number;
+    coverage: number;
+    renewalDate: string;
+    dependentsCovered: number;
+}
+
+export interface InsuranceOnboardingData {
+    hasExistingInsurance: boolean | null;
+    existingPolicies: InsurancePolicyOnboarding[];
+    fullName: string;
+    age: number | null;
+    maritalStatus: 'Single' | 'Married' | null;
+    employmentType: 'Salaried' | 'Self-Employed' | 'Other' | null;
+    lifestyleSmoker: 'Non-Smoker' | 'Smoker' | null;
+    income: number | null;
+    monthlyExpenses: number | null;
+    insuranceBudget: 'Low' | 'Medium' | 'High' | null;
+    riskAppetite: 'Low' | 'Medium' | 'High' | null;
+    hasMajorHealthConditions: boolean | null;
+    majorHealthConditions?: string;
+    preferredCoverageType: 'Basic' | 'Comprehensive' | null;
+    willingnessForCheckup: boolean | null;
+    mainGoal: 'Protection' | 'Investment-linked' | 'Both' | null;
+    desiredCoverage: number | null;
+    priorityOfProtection: 'Life' | 'Health' | 'Term' | null;
+    claimedInsurance: boolean | null;
+    claimedInsuranceDetails?: string;
+    preferredPolicyDuration: '1-5 yrs' | '5-10 yrs' | '10+ yrs' | null;
+    tipsFrequency: 'Daily' | 'Weekly' | 'Monthly' | null;
+    guidanceStyle: 'Text' | 'Charts' | 'Both' | null;
+    preferredRecommendationSource: 'Ditto' | 'AI only' | 'Both' | null;
+    willingnessToAdjust: boolean | null;
 }
 
 
