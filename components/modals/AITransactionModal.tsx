@@ -1,3 +1,4 @@
+
 import React, { useState, useContext, FC } from 'react';
 import { FinancialContext } from '../../App';
 import { parseTransactionsFromText, ParsedTransaction } from '../../services/geminiService';
@@ -48,10 +49,10 @@ const AITransactionModal: FC<AITransactionModalProps> = ({ isVisible, onClose })
                 setParsedTransactions(result);
                 setStep('confirm');
             } else {
-                setError("The AI couldn't find any transactions. Please try rephrasing.");
+                setError("Couldn't identify any transactions. Try 'Spent 500 on Food'.");
             }
         } catch (e) {
-            setError("AI transaction parsing is temporarily disabled. Please add transactions manually.");
+            setError("An error occurred while parsing locally.");
         } finally {
             setIsLoading(false);
         }
@@ -88,8 +89,8 @@ const AITransactionModal: FC<AITransactionModalProps> = ({ isVisible, onClose })
                     <div className="flex items-center space-x-3">
                         <div className="p-2 bg-purple-900/50 rounded-lg"><SparklesIcon className="h-6 w-6 text-purple-300"/></div>
                         <div>
-                            <h2 className="text-xl font-bold text-gray-100">Add Transactions with AI</h2>
-                            <p className="text-sm text-gray-400">Describe your spending in one go.</p>
+                            <h2 className="text-xl font-bold text-gray-100">Smart Add (Offline)</h2>
+                            <p className="text-sm text-gray-400">Extract transactions from text instantly.</p>
                         </div>
                     </div>
                 </div>
@@ -100,7 +101,7 @@ const AITransactionModal: FC<AITransactionModalProps> = ({ isVisible, onClose })
                             <textarea 
                                 value={inputText}
                                 onChange={e => setInputText(e.target.value)}
-                                placeholder="e.g., Zomato 500 rs, paid my phone bill for 999, and groceries for 1200 from Blinkit"
+                                placeholder="e.g., Spent 500 on Zomato and 2000 for Petrol"
                                 className="w-full h-32 bg-gray-900/50 border border-gray-700 rounded-lg p-3 text-gray-200 focus:ring-2 focus:ring-purple-500 transition-all resize-none"
                             />
                             {error && <p className="text-sm text-red-400 text-center">{error}</p>}
@@ -108,7 +109,7 @@ const AITransactionModal: FC<AITransactionModalProps> = ({ isVisible, onClose })
                     )}
                     {step === 'confirm' && (
                         <div className="space-y-3">
-                             <h3 className="font-semibold text-gray-300">Please review the transactions found by AI:</h3>
+                             <h3 className="font-semibold text-gray-300">Review extracted transactions:</h3>
                              {parsedTransactions.map((t, index) => (
                                 <div key={index} className="bg-black/30 rounded-lg p-3 flex items-center space-x-3 group">
                                     <span className="text-2xl">{categoryIcons[t.category] || categoryIcons['Default']}</span>
@@ -131,7 +132,7 @@ const AITransactionModal: FC<AITransactionModalProps> = ({ isVisible, onClose })
                 <div className="p-6 pt-4 flex-shrink-0">
                     {step === 'input' && (
                         <button onClick={handleAnalyze} disabled={isLoading} className="w-full py-3 bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-bold rounded-xl shadow-lg shadow-purple-500/20 transform hover:scale-105 active:scale-100 transition-transform disabled:bg-gray-600 disabled:cursor-not-allowed">
-                            {isLoading ? 'Analyzing...' : 'Analyze Text'}
+                            {isLoading ? 'Extracting...' : 'Analyze Text'}
                         </button>
                     )}
                     {step === 'confirm' && (

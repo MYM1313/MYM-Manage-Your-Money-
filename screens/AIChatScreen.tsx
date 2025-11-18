@@ -1,14 +1,11 @@
+
 import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 import { ChatMessage } from '../types';
 import { SendIcon } from '../components/icons/SendIcon';
 import { ChevronLeftIcon } from '../components/icons/ChevronLeftIcon';
 import { AIIcon } from '../components/icons/AIIcon';
-import { SettingsIcon } from '../components/icons/SettingsIcon';
-import { InfoIcon } from '../components/icons/InfoIcon';
-import { MicrophoneIcon } from '../components/icons/MicrophoneIcon';
-import { AreaChart, Area, XAxis, Tooltip, ResponsiveContainer } from 'recharts';
+import { ResponsiveContainer, AreaChart, Area, Tooltip } from 'recharts';
 import { getChatResponse } from '../services/geminiService';
-import { SearchIcon } from '../components/icons/SearchIcon';
 
 // --- HELPER & UTILITY COMPONENTS ---
 
@@ -35,34 +32,6 @@ const CountUp: React.FC<{ end: number; duration?: number; prefix?: string; suffi
     return <span>{prefix}{count.toLocaleString('en-IN', { minimumFractionDigits: decimals, maximumFractionDigits: decimals })}{suffix}</span>;
 };
 
-const ParticleBackground: React.FC = React.memo(() => {
-    const particles = useMemo(() => Array.from({ length: 30 }).map((_, i) => ({
-        id: i,
-        size: Math.random() * 2 + 1,
-        left: `${Math.random() * 100}%`,
-        animationDuration: `${Math.random() * 15 + 10}s`,
-        animationDelay: `${Math.random() * -25}s`,
-    })), []);
-
-    return (
-        <div className="absolute top-0 left-0 right-0 bottom-0 overflow-hidden z-0">
-            {particles.map(p => (
-                <div
-                    key={p.id}
-                    className="absolute rounded-full bg-white/5"
-                    style={{
-                        width: `${p.size}px`,
-                        height: `${p.size}px`,
-                        left: p.left,
-                        bottom: '-10px',
-                        animation: `float-particle ${p.animationDuration} ${p.animationDelay} linear infinite`,
-                    }}
-                />
-            ))}
-        </div>
-    );
-});
-
 // --- INTERACTIVE EMBEDDED COMPONENT ---
 
 const SIPAnalysis: React.FC = () => {
@@ -73,12 +42,10 @@ const SIPAnalysis: React.FC = () => {
     const { futureValue, chartData } = useMemo(() => {
         const i = returnRate / 100 / 12;
         const n = period * 12;
-        // FIX: Use sipAmount state variable instead of undefined monthlyInvestment
         const fv = i > 0 ? sipAmount * ((((1 + i) ** n) - 1) / i) * (1 + i) : sipAmount * n;
 
         const data = Array.from({ length: period + 1 }).map((_, year) => {
             const months = year * 12;
-            // FIX: Use sipAmount state variable instead of undefined monthlyInvestment
             const value = i > 0 ? sipAmount * ((((1 + i) ** months) - 1) / i) * (1 + i) : sipAmount * months;
             return { year, value: Math.round(value) };
         });
@@ -207,70 +174,48 @@ const ChatInput: React.FC<{ onSend: (text: string) => void; isSending: boolean; 
     );
 };
 
-const SourceLink: React.FC<{ uri: string; title: string; }> = ({ uri, title }) => (
-    <a href={uri} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-xs text-sky-400 bg-sky-900/50 p-2 rounded-lg hover:bg-sky-800/50 transition-colors">
-        <SearchIcon className="w-4 h-4 flex-shrink-0" />
-        <span className="truncate">{title || new URL(uri).hostname}</span>
-    </a>
-);
-
 const AIChatScreen: React.FC<{ onBack: () => void }> = ({ onBack }) => {
     const [messages, setMessages] = useState<ChatMessage[]>([
-        { id: '1', role: 'model', content: "Hello! I'm your AI financial assistant. How can I help you achieve your goals today?" }
+        { id: '1', role: 'model', content: "Hello! I'm your offline financial assistant. I can help you with definitions, rules of thumb, and basic financial concepts." }
     ]);
     const [isSending, setIsSending] = useState(false);
-    const [isSearching, setIsSearching] = useState(false);
 
     const handleSend = useCallback(async (text: string) => {
         const userMessage: ChatMessage = { id: Date.now().toString(), role: 'user', content: text };
         setMessages(prev => [...prev, userMessage]);
         setIsSending(true);
-
-        const isSearchQuery = /who|what|when|where|why|current|latest|price of/i.test(text);
-        if (isSearchQuery) setIsSearching(true);
         
         const typingMessage: ChatMessage = { id: `${Date.now()}-typing`, role: 'typing', content: '' };
         setMessages(prev => [...prev, typingMessage]);
 
         try {
-            const { text: responseText, sources } = await getChatResponse(text);
+            const { text: responseText } = await getChatResponse(text);
 
             let content: React.ReactNode = responseText;
-            if (text.toLowerCase().includes("sip")) {
+            if (text.toLowerCase().includes("sip") && !text.toLowerCase().includes("what")) {
                 content = <SIPAnalysis />;
-            } else if (sources && sources.length > 0) {
-                content = (
-                    <div>
-                        <p>{responseText}</p>
-                        <div className="mt-4 space-y-2">
-                            <h4 className="text-xs font-semibold text-gray-400">Sources:</h4>
-                            {sources.map(s => <SourceLink key={s.uri} uri={s.uri} title={s.title} />)}
-                        </div>
-                    </div>
-                );
             }
 
             const modelMessage: ChatMessage = { id: `${Date.now()}-model`, role: 'model', content };
             setMessages(prev => prev.filter(m => m.role !== 'typing').concat(modelMessage));
         } catch (error) {
             console.error(error);
-            const errorMessage: ChatMessage = { id: `${Date.now()}-error`, role: 'model', content: "Sorry, I couldn't connect to my brain right now. Please try again later." };
+            const errorMessage: ChatMessage = { id: `${Date.now()}-error`, role: 'model', content: "I'm having trouble processing that request locally." };
             setMessages(prev => prev.filter(m => m.role !== 'typing').concat(errorMessage));
         } finally {
             setIsSending(false);
-            setIsSearching(false);
         }
     }, []);
 
-    const suggestionChips = ["Explain SIPs", "How can I save tax?", "What's my spending this month?"];
+    const suggestionChips = ["Explain SIP", "What is the 50/30/20 rule?", "Define debt avalanche"];
     
     return (
         <div className="h-full flex flex-col bg-gradient-to-b from-[#10141b] to-[#0D1117] text-gray-200">
             <header className="sticky top-0 z-20 p-4 flex items-center bg-[#10141b]/80 backdrop-blur-sm">
                 <button onClick={onBack} className="p-2 -ml-2 text-gray-300 rounded-full hover:bg-white/10"><ChevronLeftIcon /></button>
                 <div className="text-center flex-1">
-                    <h1 className="text-lg font-bold text-gray-100">AI Mentor</h1>
-                    <p className={`text-xs transition-opacity duration-300 ${isSearching ? 'text-sky-400 opacity-100' : 'opacity-0'}`}>Searching the web...</p>
+                    <h1 className="text-lg font-bold text-gray-100">AI Mentor (Offline)</h1>
+                    <p className="text-xs text-gray-500">Running on local logic</p>
                 </div>
                 <div className="w-8"></div>
             </header>
