@@ -1,5 +1,6 @@
-import React, { useContext, useState, useRef, useEffect } from 'react';
+import React, { useContext } from 'react';
 import { BellIcon } from '../icons/BellIcon';
+import { UserIcon } from '../icons/UserIcon';
 import IconWrapper from '../shared/IconWrapper';
 import { Tab } from '../../types';
 import { FinancialContext } from '../../App';
@@ -55,44 +56,6 @@ const NotificationBell: React.FC = () => {
     );
 };
 
-const UserProfileButton: React.FC = () => {
-    const { user, logout } = useContext(FinancialContext);
-    const [isOpen, setIsOpen] = useState(false);
-    const dropdownRef = useRef<HTMLDivElement>(null);
-
-    useEffect(() => {
-        const handleClickOutside = (event: MouseEvent) => {
-            if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-                setIsOpen(false);
-            }
-        };
-        document.addEventListener("mousedown", handleClickOutside);
-        return () => document.removeEventListener("mousedown", handleClickOutside);
-    }, []);
-
-    if (!user) return null;
-
-    return (
-        <div className="relative" ref={dropdownRef}>
-            <button onClick={() => setIsOpen(!isOpen)} className="w-10 h-10 rounded-full overflow-hidden border-2 border-gray-600 hover:border-sky-400 transition-colors">
-                <img src={user.profilePictureUrl || `https://avatar.vercel.sh/${user.name}.png`} alt={user.name} className="w-full h-full object-cover" />
-            </button>
-            {isOpen && (
-                <div className="absolute top-14 right-0 w-56 bg-gray-800/90 backdrop-blur-md rounded-xl shadow-lg border border-white/10 animate-fade-in p-2 z-30">
-                    <div className="px-3 py-2 border-b border-white/10">
-                        <p className="font-semibold text-gray-200 truncate">{user.name}</p>
-                        <p className="text-xs text-gray-400 truncate">{user.email}</p>
-                    </div>
-                    <button onClick={logout} className="w-full text-left px-3 py-2 mt-1 text-sm text-red-400 hover:bg-red-500/20 rounded-lg transition-colors">
-                        Sign Out
-                    </button>
-                </div>
-            )}
-        </div>
-    );
-};
-
-
 // FIX: Define the missing TopNavProps interface to resolve the TypeScript error.
 interface TopNavProps {
   setActiveTab: (tab: Tab | string) => void;
@@ -112,7 +75,9 @@ const TopNav: React.FC<TopNavProps> = ({ setActiveTab }) => {
         <IconWrapper onClick={() => setActiveTab('notifications')}>
           <NotificationBell />
         </IconWrapper>
-        <UserProfileButton />
+        <IconWrapper onClick={() => setActiveTab('Profile')}>
+          <UserIcon />
+        </IconWrapper>
       </div>
     </header>
   );

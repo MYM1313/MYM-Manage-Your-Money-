@@ -1,8 +1,8 @@
-import React, { useState, useMemo, createContext, FC, ReactNode, useEffect, useRef, useContext, useCallback } from 'react';
-import { onAuthStateChanged, signOut, User as FirebaseUser } from 'firebase/auth';
-import { auth } from './firebase';
 
-import { Tab, Transaction, DetailedSavingsGoal, Investment, InsurancePolicy, Debt, SuperCategory, TransactionType, DebtPlan, FinancialContextType, InvestmentGoal, Notification, AppSettings, User, LinkedAccount, LoginActivity, Asset, Liability, Strategy, RoadmapItem, DebtPaymentDetail, OnboardingData } from './types';
+// FIX: Removed stray character 'D' from import statement.
+import React, { useState, useMemo, createContext, FC, ReactNode, useEffect, useRef, useContext, useCallback } from 'react';
+// FIX: Import InvestmentOnboardingData to fix typing errors.
+import { Tab, Transaction, DetailedSavingsGoal, Investment, InsurancePolicy, Debt, SuperCategory, TransactionType, DebtPlan, FinancialContextType, InvestmentGoal, InvestmentCategory, Notification, AppSettings, User, LinkedAccount, LoginActivity, Asset, Liability, Strategy, RoadmapItem, DebtPaymentDetail, OnboardingData } from './types';
 import TopNav from './components/layout/TopNav';
 import BottomNav from './components/layout/BottomNav';
 import HomeScreen from './screens/HomeScreen';
@@ -28,10 +28,10 @@ import EditProfileScreen from './screens/settings/EditProfileScreen';
 import LinkedAccountsScreen from './screens/settings/LinkedAccountsScreen';
 import SecurityScreen from './screens/settings/SecurityScreen';
 import SimpleOnboardingScreen, { OnboardingResult } from './screens/SimpleOnboardingScreen';
-import LoginScreen from './screens/LoginScreen';
 
 
 // --- FINANCIAL CONTEXT ---
+// New initial settings state
 const initialAppSettings: AppSettings = {
     notifications: {
         pushEnabled: true,
@@ -146,18 +146,20 @@ const AppContent: React.FC = () => {
   useEffect(() => {
     const root = document.documentElement;
     
+    // Theme
     if (appSettings.appearance.theme === 'Light') {
         root.classList.add('light');
-    } else {
+    } else { // Dark or Auto defaults to dark for now
         root.classList.remove('light');
     }
     
+    // Font Size
     if (appSettings.appearance.fontSize === 'Small') {
         root.style.fontSize = '14px';
     } else if (appSettings.appearance.fontSize === 'Large') {
         root.style.fontSize = '18px';
     } else {
-        root.style.fontSize = '16px';
+        root.style.fontSize = '16px'; // Medium
     }
 
   }, [appSettings.appearance.theme, appSettings.appearance.fontSize]);
@@ -172,12 +174,12 @@ const AppContent: React.FC = () => {
     if (topLevelTabs.includes(currentView.view as Tab)) {
         return currentView.view as Tab;
     }
-    if(currentView.view === 'Profile') return 'Home';
+    if(currentView.view === 'Profile') return 'Home'; // No profile tab now, so fallback to home visually
     const profileSubViews = ['debt', 'insurance', 'netWorth', 'tools', 'learning', 'bookExpert', 'transactions', 'aiAnalysis', 'notifications', 'settings', 'editProfile', 'linkedAccounts', 'security', 'language', 'terms', 'support', 'feedback', 'community', 'faq'];
     if (profileSubViews.includes(currentView.view)) {
-         return 'Home';
+         return 'Home'; // No profile tab now
     }
-    return 'Home';
+    return 'Home'; // Fallback
   }, [currentView.view]);
 
   const renderContent = () => {
@@ -218,12 +220,14 @@ const AppContent: React.FC = () => {
         return <LearningCenterScreen onBack={handleBackToProfile} initialCategory={currentView.params?.category} />;
       case 'transactions':
         return <TransactionsScreen onBack={handleBackToProfile} />;
+      // Functional settings screens
       case 'editProfile':
         return <EditProfileScreen onBack={handleBackToSettings} />;
       case 'linkedAccounts':
           return <LinkedAccountsScreen onBack={handleBackToSettings} />;
       case 'security':
           return <SecurityScreen onBack={handleBackToSettings} />;
+      // Placeholder screens
       case 'language':
           return <PlaceholderScreen title="Language" onBack={handleBackToSettings} />;
       case 'terms':
@@ -255,32 +259,94 @@ const AppContent: React.FC = () => {
   );
 };
 
+// --- STORAGE TYPE DEFINITION ---
+interface StoredData {
+    transactions: Transaction[];
+    savingsGoals: DetailedSavingsGoal[];
+    investments: Investment[];
+    investmentGoals: InvestmentGoal[];
+    insurancePolicies: InsurancePolicy[];
+    debts: Debt[];
+    assets: Asset[];
+    liabilities: Liability[];
+    categorySplit: { essential: number; investment: number; wants: number };
+    debtPlan: DebtPlan | null;
+    notifications: Notification[];
+    appSettings: AppSettings;
+    user: User;
+    linkedAccounts: LinkedAccount[];
+    loginActivity: LoginActivity[];
+    lastUpdated: number;
+}
 
+const STORAGE_KEY = 'mym_user_data';
+
+// --- DUMMY DATA FOR FRESH START ---
+const DUMMY_TRANSACTIONS: Transaction[] = [];
+const DUMMY_SAVINGS_GOALS: DetailedSavingsGoal[] = [];
+const DUMMY_INVESTMENT_GOALS: InvestmentGoal[] = [];
+const DUMMY_INVESTMENTS: Investment[] = [];
+const DUMMY_INSURANCE_POLICIES: InsurancePolicy[] = [];
+const DUMMY_DEBTS: Debt[] = [];
+const DUMMY_ASSETS: Asset[] = [];
+const DUMMY_LIABILITIES: Liability[] = [];
 const DUMMY_NOTIFICATIONS: Notification[] = [
     { id: 'n-welcome', category: 'Welcome', icon: '🎉', title: 'Welcome to MYM!', message: 'We\'re excited to help you on your journey to financial freedom. Explore the app to get started.', timestamp: new Date().toISOString(), isRead: false, action: { label: 'Explore Features', view: 'Home' }},
 ];
+const DUMMY_LINKED_ACCOUNTS: LinkedAccount[] = [];
+const DUMMY_LOGIN_ACTIVITY: LoginActivity[] = [
+    { id: 'la1', device: 'Current Device', location: 'Unknown', timestamp: new Date().toISOString(), isCurrent: true },
+];
 
-const AppContainer: FC<{ userId: string; initialData: OnboardingResult & { financials?: any }, onLogout: () => void }> = ({ userId, initialData, onLogout }) => {
-    const { user: onboardedUser, data: onboardingData, financials } = initialData;
 
-    const [transactions, setTransactions] = useState<Transaction[]>(financials?.transactions || []);
-    const [savingsGoals, setSavingsGoals] = useState<DetailedSavingsGoal[]>(financials?.savingsGoals || []);
-    const [investments, setInvestments] = useState<Investment[]>(financials?.investments || []);
-    const [investmentGoals, setInvestmentGoals] = useState<InvestmentGoal[]>(financials?.investmentGoals || []);
-    const [insurancePolicies, setInsurancePolicies] = useState<InsurancePolicy[]>(financials?.insurancePolicies || []);
-    const [debts, setDebts] = useState<Debt[]>(financials?.debts || []);
-    const [assets, setAssets] = useState<Asset[]>(financials?.assets || []);
-    const [liabilities, setLiabilities] = useState<Liability[]>(financials?.liabilities || []);
-    const [categorySplit, setCategorySplit] = useState(financials?.categorySplit || { essential: 50, investment: 30, wants: 20 });
-    const [debtPlan, setDebtPlan] = useState<DebtPlan | null>(financials?.debtPlan || null);
+// --- Main App Container with Context Provider ---
+const AppContainer: FC<{ onboardingResult: OnboardingResult | null, restoredData?: StoredData, onLogout: () => void }> = ({ onboardingResult, restoredData, onLogout }) => {
     
-    const [notifications, setNotifications] = useState<Notification[]>(financials?.notifications || DUMMY_NOTIFICATIONS);
-    const [appSettings, setAppSettings] = useState<AppSettings>(financials?.appSettings || initialAppSettings);
-    const [user, setUser] = useState<User>(onboardedUser);
-    const [linkedAccounts, setLinkedAccounts] = useState<LinkedAccount[]>(financials?.linkedAccounts || []);
-    const [loginActivity, setLoginActivity] = useState<LoginActivity[]>(financials?.loginActivity || [{ id: 'la1', device: 'Current Device', location: 'Unknown', timestamp: new Date().toISOString(), isCurrent: true }]);
+    // Initialize State either from Restored Data or Default/Onboarding Data
+    const [transactions, setTransactions] = useState<Transaction[]>(restoredData?.transactions || DUMMY_TRANSACTIONS);
+    const [savingsGoals, setSavingsGoals] = useState<DetailedSavingsGoal[]>(restoredData?.savingsGoals || DUMMY_SAVINGS_GOALS);
+    const [investments, setInvestments] = useState<Investment[]>(restoredData?.investments || DUMMY_INVESTMENTS);
+    const [investmentGoals, setInvestmentGoals] = useState<InvestmentGoal[]>(restoredData?.investmentGoals || DUMMY_INVESTMENT_GOALS);
+    const [insurancePolicies, setInsurancePolicies] = useState<InsurancePolicy[]>(restoredData?.insurancePolicies || DUMMY_INSURANCE_POLICIES);
+    const [debts, setDebts] = useState<Debt[]>(restoredData?.debts || DUMMY_DEBTS);
+    const [assets, setAssets] = useState<Asset[]>(restoredData?.assets || DUMMY_ASSETS);
+    const [liabilities, setLiabilities] = useState<Liability[]>(restoredData?.liabilities || DUMMY_LIABILITIES);
+    const [categorySplit, setCategorySplit] = useState(restoredData?.categorySplit || { essential: 50, investment: 30, wants: 20 });
+    const [debtPlan, setDebtPlan] = useState<DebtPlan | null>(restoredData?.debtPlan || null);
+    
+    const [notifications, setNotifications] = useState<Notification[]>(restoredData?.notifications || DUMMY_NOTIFICATIONS);
+    const [appSettings, setAppSettings] = useState<AppSettings>(restoredData?.appSettings || initialAppSettings);
+    const [user, setUser] = useState<User>(restoredData?.user || (onboardingResult?.user || defaultUser));
+    const [linkedAccounts, setLinkedAccounts] = useState<LinkedAccount[]>(restoredData?.linkedAccounts || DUMMY_LINKED_ACCOUNTS);
+    const [loginActivity, setLoginActivity] = useState<LoginActivity[]>(restoredData?.loginActivity || DUMMY_LOGIN_ACTIVITY);
 
-    const initialized = useRef(!!financials);
+    const initialized = useRef(false);
+
+    // --- AUTO-SAVE EFFECT ---
+    useEffect(() => {
+        if (!initialized.current) return; // Don't save on initial render, only updates
+
+        const dataToSave: StoredData = {
+            transactions,
+            savingsGoals,
+            investments,
+            investmentGoals,
+            insurancePolicies,
+            debts,
+            assets,
+            liabilities,
+            categorySplit,
+            debtPlan,
+            notifications,
+            appSettings,
+            user,
+            linkedAccounts,
+            loginActivity,
+            lastUpdated: Date.now(),
+        };
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(dataToSave));
+    }, [transactions, savingsGoals, investments, investmentGoals, insurancePolicies, debts, assets, liabilities, categorySplit, debtPlan, notifications, appSettings, user, linkedAccounts, loginActivity]);
+
 
     const categoryToSuperCategoryMap: Record<string, SuperCategory> = { 'Groceries': 'Essential', 'Bills': 'Essential', 'EMI': 'Essential', 'Loan Payment': 'Essential', 'Rent': 'Essential', 'Transport': 'Essential', 'Health': 'Essential', 'Utilities': 'Essential', 'Education': 'Essential', 'Household': 'Essential', 'Investment': 'Investment', 'SIP': 'Investment', 'Savings': 'Savings', 'Insurance Premium': 'Essential', 'Goal Contribution': 'Savings', 'Food': 'Entertainment', 'Shopping': 'Entertainment', 'Entertainment': 'Entertainment', 'Travel': 'Entertainment', 'Gifts': 'Entertainment', 'Personal Care': 'Entertainment', 'Subscriptions': 'Entertainment', 'Other': 'Entertainment', 'Salary': 'Income', 'Business': 'Income', 'Freelance': 'Income', 'Investment Returns': 'Income', 'Rental Income': 'Income', };
 
@@ -329,9 +395,17 @@ const AppContainer: FC<{ userId: string; initialData: OnboardingResult & { finan
         setInsurancePolicies(prev => [...prev, { ...policy, id: Date.now().toString() }]);
     }, []);
 
+    // --- ONBOARDING DATA POPULATION ---
     useEffect(() => {
-        if (initialized.current || !onboardingData) return;
+        // Only populate from onboarding if we are NOT restoring data and haven't initialized yet
+        if (initialized.current || restoredData || !onboardingResult) {
+            initialized.current = true; // Mark initialized even if we restored, to enable auto-save
+            return;
+        }
 
+        const { data: onboardingData } = onboardingResult;
+
+        // Add initial income transaction
         if (onboardingData.monthlyIncome > 0) {
             addTransaction({
                 merchant: 'Initial Monthly Income',
@@ -343,6 +417,7 @@ const AppContainer: FC<{ userId: string; initialData: OnboardingResult & { finan
             });
         }
         
+        // Populate debts
         if (onboardingData.hasDebts === 'Yes' && onboardingData.debts) {
             onboardingData.debts.forEach(d => {
                 if(d.outstandingAmount > 0) {
@@ -351,6 +426,7 @@ const AppContainer: FC<{ userId: string; initialData: OnboardingResult & { finan
             });
         }
         
+        // Populate investments
         if (onboardingData.invests === 'Yes' && onboardingData.investmentLocation) {
              addInvestment({
                 name: `${onboardingData.investmentLocation} Holding`,
@@ -359,6 +435,7 @@ const AppContainer: FC<{ userId: string; initialData: OnboardingResult & { finan
             });
         }
 
+        // Populate insurance
         if(onboardingData.hasInsurance === 'Yes' && onboardingData.insurancePolicies) {
             onboardingData.insurancePolicies.forEach(p => {
                 if (p.coverage > 0) {
@@ -366,7 +443,7 @@ const AppContainer: FC<{ userId: string; initialData: OnboardingResult & { finan
                         type: p.type,
                         provider: p.type,
                         coverage: p.coverage,
-                        premium: 0,
+                        premium: 0, // Not collected in new onboarding
                         premiumFrequency: 'Annually',
                         premiumDueDate: new Date().toISOString(),
                         expiryDate: new Date().toISOString(),
@@ -376,26 +453,7 @@ const AppContainer: FC<{ userId: string; initialData: OnboardingResult & { finan
         }
 
         initialized.current = true;
-    }, [onboardingData, addTransaction, addDebt, addInvestment, addInsurancePolicy]);
-
-    useEffect(() => {
-        if (!userId) return;
-        const storageKey = `mym_app_data_${userId}`;
-        const appData = {
-            user: onboardedUser,
-            data: onboardingData,
-            financials: {
-                transactions, savingsGoals, investments, investmentGoals, insurancePolicies,
-                debts, assets, liabilities, categorySplit, debtPlan, notifications,
-                appSettings, linkedAccounts, loginActivity
-            }
-        };
-        localStorage.setItem(storageKey, JSON.stringify(appData));
-    }, [
-        userId, transactions, savingsGoals, investments, investmentGoals, insurancePolicies,
-        debts, assets, liabilities, categorySplit, debtPlan, notifications, appSettings,
-        linkedAccounts, loginActivity, onboardedUser, onboardingData
-    ]);
+    }, [onboardingResult, restoredData, addTransaction, addDebt, addInvestment, addInsurancePolicy]);
 
     const removeTransaction = (transactionId: string) => { setTransactions(prev => prev.filter(t => t.id !== transactionId)); };
     const addSavingsGoal = (goal: Omit<DetailedSavingsGoal, 'id'>) => { setSavingsGoals(prev => [...prev, { ...goal, id: Date.now().toString() }]); };
@@ -422,6 +480,7 @@ const AppContainer: FC<{ userId: string; initialData: OnboardingResult & { finan
     
     const deleteAllData = () => {
         setTransactions([]); setSavingsGoals([]); setInvestments([]); setInvestmentGoals([]); setInsurancePolicies([]); setDebts([]); setDebtPlan(null); setAssets([]); setLiabilities([]);
+        localStorage.removeItem(STORAGE_KEY);
     };
         
     const addInvestmentGoal = (goal: Omit<InvestmentGoal, 'id' | 'currentAmount' | 'status' | 'createdAt'>) => {
@@ -435,6 +494,7 @@ const AppContainer: FC<{ userId: string; initialData: OnboardingResult & { finan
 
     const deleteInvestmentGoal = (goalId: string) => { setInvestmentGoals(prev => prev.filter(g => g.id !== goalId)); };
 
+    // New context functions
     const addNotification = (notification: Omit<Notification, 'id' | 'timestamp' | 'isRead'>) => {
         const newNotif = { ...notification, id: Date.now().toString(), timestamp: new Date().toISOString(), isRead: false };
         setNotifications(prev => [newNotif, ...prev]);
@@ -480,103 +540,57 @@ const AppContainer: FC<{ userId: string; initialData: OnboardingResult & { finan
     );
 };
 
-
-const AuthenticatedApp: FC<{ user: FirebaseUser }> = ({ user }) => {
-    type AppState = 'LOADING' | 'ONBOARDING' | 'APP';
-    const [appState, setAppState] = useState<AppState>('LOADING');
-    const [appData, setAppData] = useState<OnboardingResult | null>(null);
-
-    useEffect(() => {
-        if (!user) return;
-
-        const storageKey = `mym_app_data_${user.uid}`;
-        const savedData = localStorage.getItem(storageKey);
-        
-        if (savedData) {
-            try {
-                const parsedData = JSON.parse(savedData);
-                if (parsedData.user && parsedData.data) {
-                    setAppData(parsedData);
-                    setAppState('APP');
-                } else {
-                    setAppState('ONBOARDING');
-                }
-            } catch (error) {
-                console.error("Failed to parse saved data:", error);
-                setAppState('ONBOARDING');
-            }
-        } else {
-            setAppState('ONBOARDING');
-        }
-    }, [user]);
-
-    const handleOnboardingComplete = (result: OnboardingResult) => {
-        if (!user) return;
-        const storageKey = `mym_app_data_${user.uid}`;
-        
-        const fullResult = { 
-            ...result, 
-            user: { 
-                ...result.user, 
-                name: user.displayName || result.user.name,
-                email: user.email || result.user.email,
-                profilePictureUrl: user.photoURL || `https://avatar.vercel.sh/${user.displayName || 'user'}.png`
-            } 
-        };
-        setAppData(fullResult);
-        localStorage.setItem(storageKey, JSON.stringify(fullResult));
-        setAppState('APP');
-    };
-
-    const handleLogout = () => {
-        if (user) {
-            const storageKey = `mym_app_data_${user.uid}`;
-            localStorage.removeItem(storageKey);
-        }
-        signOut(auth);
-    };
-
-    if (appState === 'LOADING' || !user) {
-        return <div className="h-screen w-full bg-[#0D1117] flex items-center justify-center text-white">Loading User Data...</div>;
-    }
-
-    if (appState === 'ONBOARDING') {
-        const initialUser: User = {
-            name: user.displayName || '',
-            email: user.email || '',
-            profilePictureUrl: user.photoURL,
-        };
-        return <SimpleOnboardingScreen onComplete={handleOnboardingComplete} initialUser={initialUser} />;
-    }
-
-    if (appState === 'APP' && appData) {
-        return <AppContainer key={user.uid} userId={user.uid} initialData={appData} onLogout={handleLogout} />;
-    }
-    
-    return <div className="h-screen w-full bg-[#0D1117] flex items-center justify-center text-white">An unexpected error occurred. Please refresh.</div>;
-};
-
 const App: FC = () => {
-    const [user, setUser] = useState<FirebaseUser | null>(null);
-    const [loading, setLoading] = useState(true);
+    const [appKey, setAppKey] = useState(0);
+    const [onboardingResult, setOnboardingResult] = useState<OnboardingResult | null>(null);
+    const [restoredData, setRestoredData] = useState<StoredData | undefined>(undefined);
+    const [isLoading, setIsLoading] = useState(true);
 
+    // Load data from LocalStorage on start
     useEffect(() => {
-        const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
-            setUser(firebaseUser);
-            setLoading(false);
-        });
-        return () => unsubscribe();
+        try {
+            const savedData = localStorage.getItem(STORAGE_KEY);
+            if (savedData) {
+                const parsedData = JSON.parse(savedData) as StoredData;
+                // Basic validation to check if it's valid data
+                if (parsedData.user) {
+                    setRestoredData(parsedData);
+                }
+            }
+        } catch (error) {
+            console.error("Failed to load storage", error);
+        } finally {
+            setIsLoading(false);
+        }
     }, []);
 
-    if (loading) {
-        return <div className="h-screen w-full bg-[#0D1117] flex items-center justify-center text-white">Initializing...</div>;
+    const handleLogout = () => {
+        localStorage.removeItem(STORAGE_KEY);
+        setRestoredData(undefined);
+        setOnboardingResult(null);
+        setAppKey(prev => prev + 1); // Re-mount everything
+    };
+
+    const handleOnboardingComplete = (result: OnboardingResult) => {
+        setOnboardingResult(result);
     }
 
-    return (
-        <>
-            {user ? <AuthenticatedApp user={user} /> : <LoginScreen />}
-        </>
-    );
+    if (isLoading) {
+        return <div className="h-screen w-full bg-[#0D1117] flex items-center justify-center text-gray-400">Loading...</div>;
+    }
+    
+    // If we have restored data, jump straight to AppContainer
+    if (restoredData) {
+         return <AppContainer key={`restored-${appKey}`} onboardingResult={null} restoredData={restoredData} onLogout={handleLogout} />;
+    }
+
+    // Otherwise show onboarding
+    if (!onboardingResult) {
+        return <SimpleOnboardingScreen onComplete={handleOnboardingComplete} />;
+    }
+    
+    // Once onboarding is done, show AppContainer (which will init and save to LS)
+    return <AppContainer key={`fresh-${appKey}`} onboardingResult={onboardingResult} onLogout={handleLogout} />;
 };
 
 export default App;

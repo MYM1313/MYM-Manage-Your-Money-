@@ -81,6 +81,12 @@ const ProfileRow: FC<{ title: string; description: string; icon: React.ReactNode
 const ProfileScreen: FC<{ onNavigate: (view: string, params?: any) => void }> = ({ onNavigate }) => {
     const { user, logout } = useContext(FinancialContext);
 
+    const handleLogout = () => {
+        if (window.confirm('Are you sure you want to sign out?')) {
+            logout();
+        }
+    };
+
     return (
         <div className="bg-gradient-to-b from-[#10141b] to-[#0D1117] text-white min-h-screen font-sans">
             <header className="sticky top-0 z-20 flex items-center justify-between p-4 bg-gradient-to-b from-black/60 to-transparent backdrop-blur-xl">
@@ -134,7 +140,7 @@ const ProfileScreen: FC<{ onNavigate: (view: string, params?: any) => void }> = 
                 </Section>
 
                  <Section title="Account" animationDelay={700}>
-                     <ProfileRow title="Logout" description="Sign out of the application" icon={<LogoutIcon />} onClick={logout} isLogout />
+                     <ProfileRow title="Logout" description="Sign out of the application" icon={<LogoutIcon />} onClick={handleLogout} isLogout />
                 </Section>
             </main>
         </div>
