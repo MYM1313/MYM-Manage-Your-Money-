@@ -73,16 +73,18 @@ const SIPAnalysis: React.FC = () => {
     const { futureValue, chartData } = useMemo(() => {
         const i = returnRate / 100 / 12;
         const n = period * 12;
-        const fv = sipAmount * ((((1 + i) ** n) - 1) / i) * (1 + i);
-        
+        // FIX: Use sipAmount state variable instead of undefined monthlyInvestment
+        const fv = i > 0 ? sipAmount * ((((1 + i) ** n) - 1) / i) * (1 + i) : sipAmount * n;
+
         const data = Array.from({ length: period + 1 }).map((_, year) => {
             const months = year * 12;
-            const value = sipAmount * ((((1 + i) ** months) - 1) / i) * (1 + i);
+            // FIX: Use sipAmount state variable instead of undefined monthlyInvestment
+            const value = i > 0 ? sipAmount * ((((1 + i) ** months) - 1) / i) * (1 + i) : sipAmount * months;
             return { year, value: Math.round(value) };
         });
         return { futureValue: fv, chartData: data };
     }, [sipAmount, returnRate, period]);
-    
+
     const sliderStyle = {
       background: `linear-gradient(to right, #FFD700 0%, #FFD700 ${((sipAmount - 500) / 49500) * 100}%, rgba(0,0,0,0.3) ${((sipAmount - 500) / 49500) * 100}%, rgba(0,0,0,0.3) 100%)`
     };
@@ -117,168 +119,178 @@ const SIPAnalysis: React.FC = () => {
                 <label className="text-gray-400">Scenario Slider: Adjust SIP Amount</label>
                 <input type="range" min="500" max="50000" step="500" value={sipAmount} onChange={e => setSipAmount(Number(e.target.value))} style={sliderStyle} className="mt-2" />
             </div>
-
-            <div className="flex gap-2 pt-2">
-                <button className="flex-1 text-center py-2 bg-white/10 text-white/80 rounded-lg hover:bg-white/20 transition-colors text-xs font-semibold">View Full Analysis</button>
-                <button className="flex-1 text-center py-2 bg-white/10 text-white/80 rounded-lg hover:bg-white/20 transition-colors text-xs font-semibold">Open SIP Calculator</button>
-            </div>
         </div>
     );
 };
 
-const SourcesComponent: React.FC<{ sources: { uri: string; title: string }[] }> = ({ sources }) => {
-    if (!sources || sources.length === 0) return null;
+const Message: React.FC<{ message: ChatMessage }> = ({ message }) => {
+    const isModel = message.role === 'model' || message.role === 'typing';
+    const messageRef = useRef<HTMLDivElement>(null);
+    
+    useEffect(() => {
+        if (messageRef.current) {
+            messageRef.current.scrollIntoView({ behavior: 'smooth' });
+        }
+    }, [message]);
+
+    const TypingIndicator: React.FC = () => (
+        <div className="flex items-center space-x-1 p-2">
+            <span className="h-2 w-2 bg-gray-400 rounded-full animate-bounce [animation-delay:-0.3s]"></span>
+            <span className="h-2 w-2 bg-gray-400 rounded-full animate-bounce [animation-delay:-0.15s]"></span>
+            <span className="h-2 w-2 bg-gray-400 rounded-full animate-bounce"></span>
+        </div>
+    );
+
     return (
-        <div className="mt-4 pt-3 border-t border-white/10">
-            <h4 className="text-xs font-semibold text-gray-400 mb-2">Sources</h4>
-            <div className="space-y-1">
-                {sources.map((source, index) => (
-                    <a href={source.uri} target="_blank" rel="noopener noreferrer" key={index} className="block text-xs text-sky-400 hover:underline truncate p-1 rounded hover:bg-sky-500/10">
-                        {index + 1}. {source.title || new URL(source.uri).hostname}
-                    </a>
-                ))}
+        <div ref={messageRef} className={`flex items-end gap-2 animate-slide-up-fade-in ${isModel ? 'justify-start' : 'justify-end'}`}>
+            {isModel && (
+                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center">
+                    <AIIcon className="h-5 w-5 text-purple-200" />
+                </div>
+            )}
+            <div className={`max-w-[80%] rounded-2xl px-4 py-3 ${isModel ? 'bg-gray-800 text-gray-200 rounded-bl-none' : 'bg-sky-600 text-white rounded-br-none'}`}>
+                {message.role === 'typing' ? <TypingIndicator /> : message.content}
             </div>
         </div>
     );
 };
 
+const ChatInput: React.FC<{ onSend: (text: string) => void; isSending: boolean; }> = ({ onSend, isSending }) => {
+    const [input, setInput] = useState('');
+    const inputRef = useRef<HTMLTextAreaElement>(null);
 
-// --- MAIN CHAT SCREEN COMPONENT ---
+    const handleSend = () => {
+        if (input.trim() && !isSending) {
+            onSend(input.trim());
+            setInput('');
+        }
+    };
+
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            handleSend();
+        }
+    };
+
+    useEffect(() => {
+        if (inputRef.current) {
+            inputRef.current.style.height = 'auto';
+            inputRef.current.style.height = `${inputRef.current.scrollHeight}px`;
+        }
+    }, [input]);
+
+    return (
+        <div className="flex items-center space-x-2">
+            <textarea
+                ref={inputRef}
+                value={input}
+                onChange={e => setInput(e.target.value)}
+                onKeyDown={handleKeyDown}
+                placeholder="Ask anything about your finances..."
+                className="flex-1 bg-gray-900/50 border border-gray-700 rounded-2xl p-3 text-gray-200 focus:ring-2 focus:ring-sky-500 transition-all resize-none max-h-32 no-scrollbar"
+                rows={1}
+                disabled={isSending}
+            />
+            <button
+                onClick={handleSend}
+                disabled={isSending || !input.trim()}
+                className="w-12 h-12 flex-shrink-0 rounded-full bg-sky-600 text-white flex items-center justify-center transition-all duration-300 disabled:bg-gray-700 disabled:cursor-not-allowed hover:bg-sky-500 active:scale-95 transform"
+            >
+                {isSending ? (
+                    <div className="w-5 h-5 border-2 border-white/50 border-t-white rounded-full animate-spin"></div>
+                ) : (
+                    <SendIcon />
+                )}
+            </button>
+        </div>
+    );
+};
+
+const SourceLink: React.FC<{ uri: string; title: string; }> = ({ uri, title }) => (
+    <a href={uri} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-xs text-sky-400 bg-sky-900/50 p-2 rounded-lg hover:bg-sky-800/50 transition-colors">
+        <SearchIcon className="w-4 h-4 flex-shrink-0" />
+        <span className="truncate">{title || new URL(uri).hostname}</span>
+    </a>
+);
 
 const AIChatScreen: React.FC<{ onBack: () => void }> = ({ onBack }) => {
     const [messages, setMessages] = useState<ChatMessage[]>([
-        { id: '1', role: 'model', content: "Hi Aarav, I’m your AI Wealth Assistant. How can I help today?" }
+        { id: '1', role: 'model', content: "Hello! I'm your AI financial assistant. How can I help you achieve your goals today?" }
     ]);
-    const [input, setInput] = useState('');
-    const [isTyping, setIsTyping] = useState(false);
+    const [isSending, setIsSending] = useState(false);
     const [isSearching, setIsSearching] = useState(false);
-    const messagesEndRef = useRef<HTMLDivElement>(null);
-    const [userName] = useState("Aarav");
 
-    const scrollToBottom = () => {
-        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-    };
-
-    useEffect(scrollToBottom, [messages]);
-    
-    const handleSend = useCallback(async (prompt: string) => {
-        if (prompt.trim() === '' || isTyping) return;
-
-        const userMessage: ChatMessage = { id: Date.now().toString(), role: 'user', content: prompt };
+    const handleSend = useCallback(async (text: string) => {
+        const userMessage: ChatMessage = { id: Date.now().toString(), role: 'user', content: text };
         setMessages(prev => [...prev, userMessage]);
-        setInput('');
-        setIsTyping(true);
-        setIsSearching(false); // No real searching will occur
+        setIsSending(true);
+
+        const isSearchQuery = /who|what|when|where|why|current|latest|price of/i.test(text);
+        if (isSearchQuery) setIsSearching(true);
+        
+        const typingMessage: ChatMessage = { id: `${Date.now()}-typing`, role: 'typing', content: '' };
+        setMessages(prev => [...prev, typingMessage]);
 
         try {
-            // All queries will now go through the mocked service
-            const { text: responseText, sources } = await getChatResponse(prompt);
-            const modelMessage: ChatMessage = {
-                id: (Date.now() + 1).toString(),
-                role: 'model',
-                content: (
-                    <>
-                        {responseText}
-                        {sources && sources.length > 0 && <SourcesComponent sources={sources} />}
-                    </>
-                )
-            };
-            setMessages(prev => [...prev, modelMessage]);
+            const { text: responseText, sources } = await getChatResponse(text);
 
+            let content: React.ReactNode = responseText;
+            if (text.toLowerCase().includes("sip")) {
+                content = <SIPAnalysis />;
+            } else if (sources && sources.length > 0) {
+                content = (
+                    <div>
+                        <p>{responseText}</p>
+                        <div className="mt-4 space-y-2">
+                            <h4 className="text-xs font-semibold text-gray-400">Sources:</h4>
+                            {sources.map(s => <SourceLink key={s.uri} uri={s.uri} title={s.title} />)}
+                        </div>
+                    </div>
+                );
+            }
+
+            const modelMessage: ChatMessage = { id: `${Date.now()}-model`, role: 'model', content };
+            setMessages(prev => prev.filter(m => m.role !== 'typing').concat(modelMessage));
         } catch (error) {
-            console.error("Failed to get AI response:", error);
-            const errorMessage: ChatMessage = { id: (Date.now() + 1).toString(), role: 'model', content: "I'm having a bit of trouble connecting right now. Please try again in a moment." };
-            setMessages(prev => [...prev, errorMessage]);
+            console.error(error);
+            const errorMessage: ChatMessage = { id: `${Date.now()}-error`, role: 'model', content: "Sorry, I couldn't connect to my brain right now. Please try again later." };
+            setMessages(prev => prev.filter(m => m.role !== 'typing').concat(errorMessage));
         } finally {
-            setIsTyping(false);
+            setIsSending(false);
             setIsSearching(false);
         }
-    }, [isTyping]);
+    }, []);
 
-    const suggestedPrompts = ["Explain what a SIP is", "What is the current price of gold?", "Who won the last cricket match?"];
+    const suggestionChips = ["Explain SIPs", "How can I save tax?", "What's my spending this month?"];
     
     return (
-        <div className="h-screen w-full bg-[#0D1117] font-sans flex flex-col overflow-hidden relative">
-            <ParticleBackground />
-            
-            <header className={`relative z-10 flex items-center justify-between p-4 flex-shrink-0 transition-all duration-500 bg-[#0D1117]/50 backdrop-blur-sm`}>
-                <button onClick={onBack} className="p-2 text-gray-300 rounded-full hover:bg-white/10"><ChevronLeftIcon /></button>
-                <div className="text-center">
-                    <div className="flex items-center justify-center space-x-2">
-                        <AIIcon className={`h-6 w-6 transition-colors duration-500 ${isTyping ? 'text-sky-400 animate-pulse' : 'text-gray-400'}`} />
-                        <h1 className="text-xl font-bold text-gray-100">AI Financial Assistant</h1>
-                    </div>
+        <div className="h-full flex flex-col bg-gradient-to-b from-[#10141b] to-[#0D1117] text-gray-200">
+            <header className="sticky top-0 z-20 p-4 flex items-center bg-[#10141b]/80 backdrop-blur-sm">
+                <button onClick={onBack} className="p-2 -ml-2 text-gray-300 rounded-full hover:bg-white/10"><ChevronLeftIcon /></button>
+                <div className="text-center flex-1">
+                    <h1 className="text-lg font-bold text-gray-100">AI Mentor</h1>
+                    <p className={`text-xs transition-opacity duration-300 ${isSearching ? 'text-sky-400 opacity-100' : 'opacity-0'}`}>Searching the web...</p>
                 </div>
-                <div className="flex items-center space-x-2">
-                    <button className="p-2 text-gray-300 rounded-full hover:bg-white/10"><InfoIcon /></button>
-                    <button className="p-2 text-gray-300 rounded-full hover:bg-white/10"><SettingsIcon /></button>
-                </div>
+                <div className="w-8"></div>
             </header>
 
-            <div className="flex-1 overflow-y-auto space-y-6 p-4 no-scrollbar relative z-10">
-                {messages.map((msg) => (
-                    <div key={msg.id} className={`flex items-end gap-3 animate-fade-in ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                        {msg.role === 'model' && <div className="w-9 h-9 rounded-full bg-black/20 flex items-center justify-center flex-shrink-0 border border-white/10"><AIIcon className="h-5 w-5 text-sky-400"/></div>}
-                        <div className={`max-w-sm md:max-w-md lg:max-w-lg px-5 py-3.5 rounded-3xl ${
-                            msg.role === 'user' 
-                            ? 'bg-gradient-to-br from-sky-500 to-indigo-600 text-white rounded-br-lg shadow-lg shadow-sky-500/20' 
-                            : 'premium-glass !p-4 !rounded-bl-lg'
-                        }`}>
-                            {msg.content}
-                        </div>
-                    </div>
-                ))}
-                {isTyping && (
-                    <div className="flex items-end gap-3 animate-fade-in">
-                        <div className="w-9 h-9 rounded-full bg-black/20 flex items-center justify-center flex-shrink-0 border border-white/10"><AIIcon className="h-5 w-5 text-sky-400"/></div>
-                         <div className="px-5 py-3.5 rounded-3xl bg-white/5 backdrop-blur-md border border-white/10 text-gray-200 rounded-bl-lg">
-                            {isSearching ? (
-                                <div className="flex items-center space-x-2 text-sm text-gray-400">
-                                    <SearchIcon />
-                                    <span>Searching the web...</span>
-                                </div>
-                            ) : (
-                                <div className="flex items-center space-x-2">
-                                    <span className="h-2 w-2 bg-gray-400 rounded-full animate-bounce [animation-delay:-0.3s]"></span>
-                                    <span className="h-2 w-2 bg-gray-400 rounded-full animate-bounce [animation-delay:-0.15s]"></span>
-                                    <span className="h-2 w-2 bg-gray-400 rounded-full animate-bounce"></span>
-                                </div>
-                            )}
-                        </div>
-                    </div>
-                )}
-                <div ref={messagesEndRef} />
+            <div className="flex-1 overflow-y-auto no-scrollbar p-4 space-y-4">
+                {messages.map(msg => <Message key={msg.id} message={msg} />)}
             </div>
 
-            <div className="relative z-10 p-4 space-y-3 bg-gradient-to-t from-[#0D1117] to-transparent">
-                 <div className="flex gap-2 overflow-x-auto no-scrollbar">
-                    {messages.length <= 1 && suggestedPrompts.map(prompt => (
-                        <button key={prompt} onClick={() => handleSend(prompt)} className="whitespace-nowrap text-sm bg-white/5 backdrop-blur-md border border-white/10 text-gray-300 px-4 py-2 rounded-full hover:bg-white/10 transition-colors">
-                            {prompt}
-                        </button>
-                    ))}
-                </div>
-                <div className="flex items-center bg-black/30 backdrop-blur-md rounded-2xl shadow-lg p-2 border border-white/10">
-                     <button className="p-2 text-gray-400 hover:text-white"><MicrophoneIcon /></button>
-                    <input
-                        type="text"
-                        value={input}
-                        onChange={(e) => setInput(e.target.value)}
-                        onKeyPress={(e) => e.key === 'Enter' && handleSend(input)}
-                        placeholder="Ask me anything..."
-                        className="flex-1 bg-transparent border-none focus:ring-0 text-gray-200 placeholder-gray-500 px-2"
-                        aria-label="Chat input"
-                    />
-                    <button
-                        onClick={() => handleSend(input)}
-                        disabled={isTyping}
-                        className="p-3 rounded-full bg-sky-600 text-white hover:bg-sky-500 disabled:bg-sky-400/50 transition-all duration-200 transform active:scale-90"
-                        aria-label="Send message"
-                    >
-                        <SendIcon />
-                    </button>
-                </div>
-            </div>
+            <footer className="p-4 bg-gradient-to-t from-[#0D1117] via-[#0D1117]/90 to-transparent">
+                {messages.length <= 1 && (
+                    <div className="flex gap-2 mb-2 overflow-x-auto no-scrollbar">
+                        {suggestionChips.map(s => (
+                            <button key={s} onClick={() => handleSend(s)} className="px-3 py-1.5 text-sm whitespace-nowrap bg-gray-800/70 rounded-full text-gray-300 hover:bg-gray-700">
+                                {s}
+                            </button>
+                        ))}
+                    </div>
+                )}
+                <ChatInput onSend={handleSend} isSending={isSending} />
+            </footer>
         </div>
     );
 };
